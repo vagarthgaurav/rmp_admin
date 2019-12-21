@@ -5,14 +5,16 @@ import router from './router'
 import store from './store'
 import vuetify from './plugins/vuetify';
 import axios from 'axios'
+import VueCookies from 'vue-cookies'
 
-const base = axios.create({
+
+Vue.use(VueCookies)
+
+const ax = axios.create({
   baseURL: 'http://api.formavisioplus.com/v1'
 })
 
-Vue.prototype.$http = base
-
-
+Vue.prototype.$http = ax
 
 Vue.config.productionTip = false
 
