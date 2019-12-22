@@ -33,7 +33,7 @@
                 </v-form>
               </v-card-text>
               <v-card-actions>
-                <v-btn width="100%" color="secondary" @click="login">Login</v-btn>
+                <v-btn width="100%" color="secondary" @click="login" :loading="loginLoader">Login</v-btn>
               </v-card-actions>
             </v-card>
           </v-col>
@@ -55,12 +55,15 @@ export default {
       ],
 
       snackbar: false,
-      snackbarContent: ""
+      snackbarContent: "",
+
+      loginLoader: false
     };
   },
   methods: {
     //   -------------------------------------------- Login Function ------------------------------------------------------
     login: function() {
+      this.loginLoader = true;
       this.$http
         .post("/training-center/authenticate", {
           username: this.email,
@@ -77,8 +80,8 @@ export default {
           this.$store.dispatch("saveLocations", Uid);
 
           this.$store.dispatch("saveRegions");
-
-           window.location.href = '/';
+          this.loginLoader = false;
+          window.location.href = "/";
         })
         .catch(e => {
           console.log(e.response);

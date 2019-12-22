@@ -311,6 +311,7 @@ export default {
         this.locations = this.$store.getters.getLocations;
         this.reset();
       }
+
       // EDIT AN EXISTING LOCATION
       else if (this.modify == 1) {
         var data2 = {
@@ -425,13 +426,8 @@ export default {
   },
   computed: {
     user() {
-      
       return this.$store.getters.getUser;
     },
-    // locations() {
-    //   console.log(this.$store.getters.getLocations);
-    //   return this.$store.getters.getLocations;
-    // },
     regions() {
       return this.$store.getters.getRegions;
     }

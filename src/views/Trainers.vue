@@ -1,25 +1,7 @@
 <template>
   <div>
-    <v-tooltip bottom>
-      <template v-slot:activator="{ on }">
-        <v-btn
-          fab
-          absolute
-          top
-          right
-          class="mx-5 my-10 primary--text"
-          color="secondary"
-          v-on="on"
-          @click="openTrainerDialog('Add new trainer')"
-        >
-          <v-icon>mdi-account-plus</v-icon>
-        </v-btn>
-      </template>
-      <span>Add new trainer</span>
-    </v-tooltip>
-
     <v-container class="mt-12">
-      <v-card class="mt-6 mx-auto" width="95%">
+      <v-card class=" mx-auto" width="95%">
         <v-card-title>
           Trainers
           <v-spacer></v-spacer>
@@ -30,6 +12,20 @@
             single-line
             hide-details
           ></v-text-field>
+          <v-tooltip bottom>
+            <template v-slot:activator="{ on }">
+              <v-btn
+                fab
+                class="mx-5 primary--text"
+                color="secondary"
+                v-on="on"
+                @click="openTrainerDialog('Add new trainer')"
+              >
+                <v-icon>mdi-account-plus</v-icon>
+              </v-btn>
+            </template>
+            <span>Add new trainer</span>
+          </v-tooltip>
         </v-card-title>
 
         <v-data-table
