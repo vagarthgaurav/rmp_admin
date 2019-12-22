@@ -54,17 +54,17 @@ router.beforeEach((to, from, next) => {
 	if (to.matched.some((record) => record.meta.requiresAuth)) {
 	
 		if (store.getters.isLoggedIn) {
-			console.log('logged in');
+			
 			next();
 		} else {
-			console.log('not logged in');
+			
 			next({
 				path: '/login'
 			});
 		}
 	} else if (to.matched.some((record) => record.meta.requiresGuest)) {
 		if (store.getters.isLoggedIn) {
-			console.log('already logged in');
+			
 			next({
 				path: from.fullPath
 			});

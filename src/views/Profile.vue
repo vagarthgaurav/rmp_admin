@@ -229,7 +229,7 @@ export default {
       pincodeRules: [
         v => !!v || "Pincode is required",
         v => !isNaN(v) || "Pincode must be valid",
-        v => v.length === 5 || "Pincode must be 5 characters"
+        v => (v &&v.length === 5) || "Pincode must be 5 characters"
       ],
       nameRules: [
         v => !!v || "City is required",
@@ -238,44 +238,12 @@ export default {
       phoneRules: [
         v => !!v || "Phone Number is required",
         v => !isNaN(v) || "Phone number must be valid",
-        v => v.length === 9 || "Phone Number must be  9 characters"
+        v => (v && v.length === 9) || "Phone Number must be  9 characters"
       ]
-      /*regions: [
-        { name: "Alsace", value: "alsace" },
-        { name: "Aquitaine", value: "aquitaine" },
-        { name: "Auvergne", value: "auvergne" },
-        { name: "Brittany", value: "brittany" },
-        { name: "Bourgogne", value: "bourgogne" },
-        { name: "Centre-Val de Loire", value: "centre-val-de-loire" },
-        { name: "Champagne-Ardenne", value: "champagne-ardenne" },
-        { name: "Corse", value: "corse" },
-        { name: "Franche-Comté", value: "franche-comte" },
-        { name: "Languedoc-Roussillon", value: "languedoc-roussillon" },
-        { name: "Limousin", value: "limousin" },
-        { name: "Lorraine", value: "lorraine" },
-        { name: "Basse Normandie", value: "basse-normandie" },
-        { name: "Midi-Pyrénées", value: "midi-pyrenees" },
-        { name: "Nord-Pas-de-Calais", value: "nord-pas-de-calais" },
-        { name: "Pays de la Loire", value: "pays-de-la-loire" },
-        { name: "Picardy", value: "picardy" },
-        { name: "Poitou-Charentes", value: "poitou-charentes" },
-        {
-          name: "Provence-Alpes-Côte d'Azur",
-          value: "provence-alpes-cote-dazur"
-        },
-        { name: "Rhône-Alpes", value: "rhone-alpes" },
-        { name: "Haute Normandie", value: "haute-normandie" },
-        { name: "Île-de-France", value: "ile-de-france" },
-        { name: "Réunion", value: "reunion" },
-        { name: "Guiana", value: "guiana" },
-        { name: "Martinique", value: "martinique" },
-        { name: "Guadelope", value: "guadeloupe" }
-      ] */
     };
   },
   created() {
     this.locations = this.$store.getters.getLocations;
-    
   },
   methods: {
     // RESET METHOD FOR MODIFY LOCATION DIALOG
@@ -284,6 +252,9 @@ export default {
       this.cities = [];
       this.cityReadOnly = true;
       this.formValid = false;
+
+       this.addCoursesLoader = false;
+
       this.$refs.form.reset();
     },
     // OPEN MODIFY LOCATION DIALOG TO ADD A NEW LOCATION
@@ -299,6 +270,9 @@ export default {
     },
     addLocation() {
       // ADD A NEW LOCATION TO THE TRAINING CENTER
+      // TODO - Locations don't display properly once moving to another page and back
+      this.addCoursesLoader = true;
+
       if (this.modify == 0) {
         var data = {
           certificateNumber: this.certificateNumber,
@@ -385,12 +359,11 @@ export default {
     },
     // OPEN MODIFY LOCATION DIALOG TO EDIT A LOCATION
     editLocation(item) {
-      console.log(item.city.id);
-
+    
       this.$http
         .get("/public/findCitiesIn/region/" + item.city.region.id)
         .then(res => {
-          console.log(res.data);
+          
           this.cities = res.data;
           this.cityReadOnly = false;
         })
@@ -452,7 +425,7 @@ export default {
   },
   computed: {
     user() {
-      console.log(this.$store.getters.getUser);
+      
       return this.$store.getters.getUser;
     },
     // locations() {
