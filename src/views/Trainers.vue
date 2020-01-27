@@ -1,7 +1,12 @@
 <template>
   <div>
+    <v-snackbar v-model="snackbar" :color="snackbarColor">
+      {{ snackbarContent }}
+      <v-btn text @click="snackbar = false" timeout="3000">Close</v-btn>
+    </v-snackbar>
+
     <v-container class="mt-12">
-      <v-card class=" mx-auto" width="95%">
+      <v-card class="mx-auto" width="95%">
         <v-card-title>
           Trainers
           <v-spacer></v-spacer>
@@ -34,6 +39,7 @@
           :items="trainers"
           class="elevation-1"
           @click:row="rowSelect"
+          :loading="trainersLoader"
         >
           <template v-slot:item.address="{ item }">
             {{ item.address.address }}, {{item.address.city.cityName.charAt(0).toUpperCase() + item.address.city.cityName.substring(1)}}
@@ -42,8 +48,7 @@
           </template>
 
           <template v-slot:item.action="{ item }">
-            <v-icon class="mr-2" @click="editItem(item)">mdi-account-edit</v-icon>
-            <v-icon @click="deleteItem(item)">mdi-account-minus</v-icon>
+            <v-icon class="mr-2" @click="editItem(item)" large>mdi-account-edit</v-icon>
           </template>
         </v-data-table>
       </v-card>
@@ -211,6 +216,12 @@ export default {
       trainerDialogTitle: "Add new trainer",
       formValid: false,
       addTrainerLoader: false,
+      trainersLoader: false,
+
+      snackbar: false,
+      snackbarContent: "",
+      snackbarColor: "",
+
       cities: [],
 
       emailRules: [
@@ -220,7 +231,7 @@ export default {
       phoneRules: [
         v => !!v || "Phone Number is required",
         v => !isNaN(v) || "Phone number must be valid",
-        v => (v && v.length === 9) || "Phone Number must be  9 characters"
+        v => (v && v.length === 10) || "Phone Number must be 10 characters"
       ],
       pincodeRules: [
         v => !!v || "Pincode is required",
@@ -228,8 +239,8 @@ export default {
         v => (v && v.length === 5) || "Pincode must be 5 characters"
       ],
       nameRules: [
-        v => !!v || "City is required",
-        v => isNaN(v) || "City must be valid"
+        v => !!v || "Name is required",
+        v => isNaN(v) || "Name must be valid"
       ],
       rules: [v => !!v || "Field is required"],
 
@@ -286,7 +297,10 @@ export default {
         { item: "Décembre", value: "12" }
       ],
 
-      gender: [{ item: "Male", values: "M" }, { item: "Female", values: "F" }],
+      gender: [
+        { item: "Male", value: "M" },
+        { item: "Female", value: "F" }
+      ],
 
       firstname: "",
       lastname: "",
@@ -313,12 +327,13 @@ export default {
         { text: "Le genre", value: "gender" },
         { text: "Email", value: "email" },
         { text: "Numéro de téléphone", value: "phoneNumber" },
-        { text: "Adresse", value: "address" },
-        { text: "Actions", value: "action", sortable: false }
+        { text: "Adresse", value: "address" }
+        //{ text: "Actions", value: "action", sortable: false }
       ]
     };
   },
   created() {
+    this.trainersLoader = true;
     this.$http
       .get("/public/findCities")
       .then(res => {
@@ -328,19 +343,17 @@ export default {
         console.log(e.response);
       });
 
-    this.trainerIsLoading = true;
-
     this.$http
       .get("/training-center/" + this.user.id + "/findAll/trainer", {
         headers: { Authorization: "Bearer " + this.$store.state.token }
       })
       .then(res => {
-        console.log(res.data);
         this.trainers = res.data;
-        this.trainerIsLoading = false;
+        this.trainersLoader = false;
       })
       .catch(e => {
         console.log(e.response);
+        this.trainersLoader = false;
       });
   },
   methods: {
@@ -371,7 +384,8 @@ export default {
         },
         dateOfBirth: this.year + "-" + this.month + "-" + this.day,
         phoneNumber: this.phonenumber,
-        email: this.email
+        email: this.email,
+        certificateNumber: this.certificateNumber
       };
 
       this.$http
@@ -386,11 +400,38 @@ export default {
           }
         )
         .then(res => {
-          console.log(res);
+          //console.log(res);
+          this.snackbarContent = "New trainer added";
+          this.snackbarColor = "success";
+          this.snackbar = true;
           this.reset();
+
+          this.$http
+            .get("/training-center/" + this.user.id + "/findAll/trainer", {
+              headers: { Authorization: "Bearer " + this.$store.state.token }
+            })
+            .then(res => {
+              this.trainers = res.data;
+              this.trainersLoader = false;
+            })
+            .catch(e => {
+              console.log(e.response);
+              this.trainersLoader = false;
+
+              this.snackbarContent = "Error getting data.";
+              this.snackbarColor = "error";
+              this.snackbar = true;
+            });
         })
         .catch(e => {
           console.log(e.response);
+          if (e.response.status == 409) {
+            this.snackbarContent = "The email is already in use.";
+            this.snackbarColor = "error";
+            this.snackbar = true;
+
+            this.trainersLoader = false;
+          }
         });
     },
     editItem(item) {
@@ -417,10 +458,10 @@ export default {
       this.trainerDialog = true;
     },
     deleteItem(item) {
-      console.log(item);
+      //console.log(item);
     },
     rowSelect(item) {
-      console.log(item);
+      //console.log(item);
     }
   },
   computed: {

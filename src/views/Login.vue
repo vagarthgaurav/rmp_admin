@@ -8,10 +8,13 @@
     <v-content>
       <v-container class="fill-height" fluid>
         <v-row align="center" justify="center">
+          <v-col cols="12" class="text-center mb-5">
+            <img src="../assets/logo.png" width="200px" />
+          </v-col>
           <v-col cols="12" sm="8" md="4">
             <v-card class="elevation-12">
               <v-toolbar color="primary" dark flat>
-                <v-toolbar-title>Login</v-toolbar-title>
+                <v-toolbar-title>Training Center Dashboard</v-toolbar-title>
                 <v-spacer />
               </v-toolbar>
               <v-card-text>
@@ -73,14 +76,14 @@ export default {
           let user = res.data.user;
           let Uid = user.id;
           let token = res.data.token;
-          this.$cookies.set("user_token", token, 60 * 60 * 1);
+
+          localStorage.removeItem("training_center_user_data");
+          localStorage.removeItem("regions");
+
+          this.$cookies.set("training_center_token", token, 60 * 60 * 1);
 
           this.$store.commit("saveUser", { user });
 
-          this.$store.dispatch("saveLocations", Uid);
-
-          this.$store.dispatch("saveRegions");
-          this.loginLoader = false;
           window.location.href = "/";
         })
         .catch(e => {
@@ -89,9 +92,11 @@ export default {
           if (err == 401) {
             this.snackbar = true;
             this.snackbarContent = "Email/Password is incorrect.";
+            this.loginLoader = false;
           } else {
             this.snackbar = true;
             this.snackbarContent = "Unknown error. Contact admin";
+            this.loginLoader = false;
           }
         });
     }

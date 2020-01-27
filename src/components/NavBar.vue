@@ -1,15 +1,21 @@
 <template>
-  <div class="navbar">
+  <div class="navbar" v-if="isLoggedIn">
     <v-app-bar color="primary" dark app flat>
       <v-app-bar-nav-icon color="white" @click.stop="drawer = !drawer" v-if="isLoggedIn"></v-app-bar-nav-icon>
 
       <v-toolbar-title>Training Center Dashboard</v-toolbar-title>
 
       <v-spacer></v-spacer>
-
+      <v-btn outlined @click="logout" v-if="isLoggedIn">Logout</v-btn>
     </v-app-bar>
 
-    <v-navigation-drawer v-if="isLoggedIn" app v-model="drawer" color="secondary" :mini-variant.sync="mini" >
+    <v-navigation-drawer
+      v-if="isLoggedIn"
+      app
+      v-model="drawer"
+      color="secondary"
+      :mini-variant.sync="mini"
+    >
       <v-list-item>
         <v-list-item-avatar>
           <v-icon>mdi-account</v-icon>
@@ -46,7 +52,11 @@ export default {
       drawer: null,
       mini: true,
       items: [
-        { title: "Profile", icon: "mdi-clipboard-account-outline", to: "/profile" },
+        {
+          title: "Profile",
+          icon: "mdi-clipboard-account-outline",
+          to: "/profile"
+        },
         { title: "Courses", icon: "mdi-view-dashboard-outline", to: "/" },
         { title: "Trainers", icon: "mdi-alpha-t-box-outline", to: "/trainers" }
       ]
@@ -54,7 +64,10 @@ export default {
   },
   created() {},
   methods: {
-    signout() {}
+    logout() {
+      this.$store.commit("signout");
+      window.location.href = "/login";
+    }
   },
   computed: {
     isLoggedIn() {

@@ -7,14 +7,14 @@ Vue.use(Vuetify);
 
 export default new Vuetify({
 	icons: {
-		iconfont: 'mdiSvg' // 'mdi' || 'mdiSvg' || 'md' || 'fa' || 'fa4'
+		iconfont: 'mdi' // 'mdi' || 'mdiSvg' || 'md' || 'fa' || 'fa4'
 	},
 	theme: {
 		themes: {
 			light: {
-				primary: '#8C2F48',
-				secondary: '#FCB3C6',
-				button: '#F3DFA2'
+				primary: '#0B2027',
+				secondary: '#70A9A1',
+				button: '#40798C'
 			}
 		}
 	}
