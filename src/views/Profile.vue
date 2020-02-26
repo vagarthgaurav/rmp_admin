@@ -42,6 +42,9 @@
                 <v-flex xs3 class="my-2">
                   <span class="profileTitle">Phone Number</span>
                 </v-flex>
+                <v-flex xs3 class="my-2">
+                  <span class="profileTitle">Siren Number</span>
+                </v-flex>
                 <v-divider></v-divider>
                 <v-flex xs3 class="my-4">
                   <span class="profileTitle">Password</span>
@@ -63,6 +66,9 @@
                 <v-flex xs3 class="my-2 mx-5">
                   <span class="profileData">{{user.phoneNumber}}</span>
                 </v-flex>
+                <v-flex xs3 class="my-2 mx-5">
+                  <span class="profileData">{{user.sirenNumber}}</span>
+                </v-flex>
                 <v-divider></v-divider>
                 <v-flex xs3 class="my-2 mx-5">
                   <span class="profileData">
@@ -71,7 +77,7 @@
                       color="red"
                       class="white--text"
                       @click="passwordResetDialog=true"
-                    >Reset Password</v-btn>
+                    >Modify Password</v-btn>
                   </span>
                 </v-flex>
               </v-layout>
@@ -86,39 +92,58 @@
       <v-progress-linear v-if="locationsLoader" color="primary" rounded indeterminate></v-progress-linear>
       <h2 class="headline my-3">Locations</h2>
       <v-layout row wrap>
-        <v-flex xs12 md4 lg3 v-for="(item,i) in locations" :key="i" class="px-4 py-3">
+        <v-flex xs12 md6 lg6 v-for="(location,i) in locations" :key="i" class="px-4 py-3">
           <v-card color="primary" class="black--text lighten-4">
-            <v-layout row wrap>
-              <v-flex xs12 class="pa-3">
-                <div class="title mb-3">
-                  <v-icon left large v-if="item.main">mdi-home-map-marker</v-icon>
-                  <v-icon left large v-else>mdi-map-marker</v-icon>
-
-                  <span class="ml-2 subheading">{{item.name}}</span>
-                </div>
-                <v-divider light></v-divider>
+            <v-layout row class="pa-2">
+              <v-flex xs4 md6>
+                <v-layout column class="pa-4">
+                  <v-flex xs4 class="my-2">
+                    <span class="profileTitle">Name</span>
+                  </v-flex>
+                  <v-flex xs4 class="my-2">
+                    <span class="profileTitle">Contact person</span>
+                  </v-flex>
+                  <v-flex xs4 class="my-2">
+                    <span class="profileTitle">Contact number</span>
+                  </v-flex>
+                  <v-flex xs4 class="my-3">
+                    <span class="profileTitle">Certificate number</span>
+                  </v-flex>
+                  <v-flex xs4 class="my-2">
+                    <span class="profileTitle">Address</span>
+                  </v-flex>
+                </v-layout>
               </v-flex>
 
-              <v-flex xs6 class="px-6 py-2">
-                <span class="body-1">{{item.address}}</span>
-                <br />
-                <span></span>
-                <br />
-                <span>{{item.city.cityName}}, {{item.city.pinCode}}</span>
-              </v-flex>
-              <v-flex xs6 class="px-6 py-2">
-                <span class="body-1">{{item.personOfContact}}</span>
-                <br />
-                <span></span>
-                <br />
-                <span>{{item.contactNumber}}</span>
+              <v-flex xs8 md6>
+                <v-layout column class="pa-4">
+                  <v-flex xs8 class="my-2 mx-5">
+                    <span class="profileData">{{location.name}}</span>
+                  </v-flex>
+                  <v-flex xs8 class="my-2 mx-5">
+                    <span class="profileData">{{location.personOfContact}}</span>
+                  </v-flex>
+                  <v-flex xs8 class="my-2 mx-5">
+                    <span class="profileData">{{location.contactNumber}}</span>
+                  </v-flex>
+                  <v-flex xs8 class="my-2 mx-5">
+                    <span class="profileData">{{location.certificateNumber}}</span>
+                  </v-flex>
+                  <v-flex xs8 class="mt-6 mx-5">
+                    <span class="profileData" style="text-transform: capitalize">
+                      {{location.address}}
+                      <br />
+                      {{location.city.pinCode}} {{location.city.cityName}}
+                    </span>
+                  </v-flex>
+                </v-layout>
               </v-flex>
             </v-layout>
             <v-divider light></v-divider>
             <v-card-actions class="pa-3" style="background-color: rgb(230,230,230)">
               <v-spacer></v-spacer>
-              <v-btn text color="green darken-2" dark @click="editLocation(item)">Edit</v-btn>
-              <v-btn text color="red darken-2" dark @click="deleteLocation(item.id)">delete</v-btn>
+              <v-btn text color="green darken-2" dark @click="editLocation(location)">Edit</v-btn>
+              <v-btn text color="red darken-2" dark @click="deleteLocation(location.id)">delete</v-btn>
             </v-card-actions>
           </v-card>
         </v-flex>
@@ -332,11 +357,16 @@ export default {
         headers: { Authorization: "Bearer " + this.$store.state.token }
       })
       .then(res => {
+        console.log(res.data);
         this.locations = res.data;
         this.locationsLoader = false;
       })
       .catch(e => {
         console.log(e.response);
+        this.locationsLoader = false;
+        this.snackbarContent = "No Locations found.";
+        this.snackbarColor = "warning";
+        this.snackbar = true;
       });
 
     this.$http
@@ -436,11 +466,9 @@ export default {
           pinCode: this.pincode,
           address: this.street,
           city: {
-            id: this.city
+            id: this.city.id
           }
         };
-
-        console.log(this.city);
 
         this.$http
           .put(
@@ -513,7 +541,7 @@ export default {
           headers: { Authorization: "Bearer " + this.$store.state.token }
         })
         .then(res => {
-          console.log(res);
+          //console.log(res);
           this.$http
             .get("/training-center/" + this.user.id + "/location/findAll", {
               headers: { Authorization: "Bearer " + this.$store.state.token }

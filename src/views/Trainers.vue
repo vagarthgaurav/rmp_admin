@@ -44,11 +44,34 @@
           <template v-slot:item.address="{ item }">
             {{ item.address.address }}, {{item.address.city.cityName.charAt(0).toUpperCase() + item.address.city.cityName.substring(1)}}
             <br />
-            <span style=" font-style: italic;">{{item.address.city.pinCode}}</span>
+            <span style=" font-style: italic;">{{item.address.pinCode}}</span>
+          </template>
+
+          <template v-slot:item.emailVerified="{ item }">
+            <v-chip dark v-if="item.emailVerified" color="green">
+              <v-icon>mdi-email-check-outline</v-icon>
+            </v-chip>
+            <v-chip dark v-else color="red">
+              <v-icon>mdi-email-alert-outline</v-icon>
+            </v-chip>
           </template>
 
           <template v-slot:item.action="{ item }">
-            <v-icon class="mr-2" @click="editItem(item)" large>mdi-account-edit</v-icon>
+            <v-tooltip bottom>
+              <template v-slot:activator="{ on }">
+                <v-btn
+                  small
+                  dark
+                  fab
+                  color="green lighten-2"
+                  class="mr-2"
+                  @click="openViewScheduleDialog(item.id)"
+                >
+                  <v-icon v-on="on">mdi-account-clock-outline</v-icon>
+                </v-btn>
+              </template>
+              <span>View Schedule</span>
+            </v-tooltip>
           </template>
         </v-data-table>
       </v-card>
@@ -205,10 +228,99 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="viewScheduleDialog" width="80%" persistent>
+      <v-card>
+        <v-card-title class="headline primary white--text pa-2" primary-title>Trainer Schedule</v-card-title>
+        <v-card-text class="my-4">
+          <v-row class="fill-height mt-12 elevation-3">
+            <v-progress-linear v-if="calendarLoader" indeterminate color="loader" height="5"></v-progress-linear>
+            <v-col>
+              <v-sheet height="64">
+                <v-toolbar flat color="white">
+                  <v-btn outlined class="mr-4" @click="setToday">Today</v-btn>
+                  <v-btn fab text small @click="prev">
+                    <v-icon small>mdi-chevron-left</v-icon>
+                  </v-btn>
+                  <v-btn fab text small @click="next">
+                    <v-icon small>mdi-chevron-right</v-icon>
+                  </v-btn>
+                  <v-toolbar-title>{{title}}</v-toolbar-title>
+                  <v-spacer></v-spacer>
+                  <v-menu bottom right>
+                    <template v-slot:activator="{ on }">
+                      <v-btn outlined v-on="on">
+                        <span>{{ typeToLabel[type] }}</span>
+                        <v-icon right>mdi-menu-down</v-icon>
+                      </v-btn>
+                    </template>
+                    <v-list>
+                      <v-list-item @click="type = 'day'">
+                        <v-list-item-title>Day</v-list-item-title>
+                      </v-list-item>
+                      <v-list-item @click="type = 'week'">
+                        <v-list-item-title>Week</v-list-item-title>
+                      </v-list-item>
+                      <v-list-item @click="type = 'month'">
+                        <v-list-item-title>Month</v-list-item-title>
+                      </v-list-item>
+                      <v-list-item @click="type = '4day'">
+                        <v-list-item-title>4 days</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+
+                  <!-- <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
+                      <v-btn
+                        fab
+                        @click="scheduleDialog = true"
+                        class="mx-5 mb-2 white--text"
+                        color="secondary"
+                        v-on="on"
+                      >
+                        <v-icon>mdi-account-clock</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>Add new dates</span>
+                  </v-tooltip>-->
+                </v-toolbar>
+              </v-sheet>
+              <v-sheet height="600">
+                <v-calendar
+                  ref="calendar"
+                  v-model="focus"
+                  color="primary"
+                  :events="events"
+                  :event-color="getEventColor"
+                  :event-margin-bottom="3"
+                  :now="today"
+                  :type="type"
+                  @click:more="viewDay"
+                  @click:date="viewDay"
+                  @change="updateRange"
+                ></v-calendar>
+              </v-sheet>
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <v-divider></v-divider>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+
+          <v-btn color="red darken-3" dark @click="viewScheduleDialog = false; " class="px-5">Close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script>
+import moment from "moment";
+
+var today = new Date(Date.now()).toISOString().slice(-24, -14);
+
 export default {
   data() {
     return {
@@ -327,9 +439,39 @@ export default {
         { text: "Le genre", value: "gender" },
         { text: "Email", value: "email" },
         { text: "Numéro de téléphone", value: "phoneNumber" },
-        { text: "Adresse", value: "address" }
-        //{ text: "Actions", value: "action", sortable: false }
-      ]
+        { text: "Adresse", value: "address" },
+        { text: "Email verifed", value: "emailVerified" },
+        { text: "Actions", value: "action", sortable: false }
+      ],
+
+      trainerID: null,
+
+      today: today,
+      focus: today,
+      type: "month",
+      typeToLabel: {
+        month: "Month",
+        week: "Week",
+        day: "Day",
+        "4day": "4 Days"
+      },
+      calendarLoader: false,
+      start: null,
+      end: null,
+      selectedEvent: {},
+      selectedElement: null,
+      selectedOpen: false,
+      eventColor: "event",
+
+      events: [],
+
+      scheduleDialog: false,
+      formValidSchedule: false,
+      addScheduleLoader: false,
+      selectedText: "",
+      schedulePicker: [],
+
+      viewScheduleDialog: false
     };
   },
   created() {
@@ -350,6 +492,8 @@ export default {
       .then(res => {
         this.trainers = res.data;
         this.trainersLoader = false;
+
+        console.log(this.trainers);
       })
       .catch(e => {
         console.log(e.response);
@@ -401,7 +545,8 @@ export default {
         )
         .then(res => {
           //console.log(res);
-          this.snackbarContent = "New trainer added";
+          this.snackbarContent =
+            "New trainer added. Email needs to be confirmed before they can be added to a course.";
           this.snackbarColor = "success";
           this.snackbar = true;
           this.reset();
@@ -462,6 +607,169 @@ export default {
     },
     rowSelect(item) {
       //console.log(item);
+    },
+
+    viewDay({ date }) {
+      this.focus = date;
+      this.type = "day";
+    },
+    getEventColor(event) {
+      return event.color;
+    },
+    setToday() {
+      this.focus = this.today;
+    },
+    prev() {
+      this.$refs.calendar.prev();
+    },
+    next() {
+      this.$refs.calendar.next();
+    },
+    deleteEvent({ nativeEvent, event }) {
+      let data = [];
+      data.push({ id: event.id, scheduleDate: event.start });
+
+      console.log(data);
+      this.$http
+        .put("/trainer/" + this.user.id + "/schedule/delete", data, {
+          headers: { Authorization: "Bearer " + this.$store.state.token }
+        })
+        .then(res => {
+          this.events = [];
+
+          this.getEvents();
+
+          this.snackbarContent = "Horaire supprimé";
+          this.snackbarColor = "warning";
+          this.snackbar = true;
+        })
+        .catch(function(e) {
+          console.log(e.response);
+        });
+
+      nativeEvent.stopPropagation();
+    },
+    updateRange({ start, end }) {
+      // You could load events from an outside source (like database) now that we have the start and end dates on the calendar
+      this.start = start;
+      this.end = end;
+    },
+    addSchedule() {
+      this.addScheduleLoader = true;
+      let data = [];
+      data = this.getDates(this.schedulePicker[0], this.schedulePicker[1]);
+
+      this.$http
+        .post("/admin/trainer/" + this.trainerID + "/schedule/save", data, {
+          headers: { Authorization: "Bearer " + this.$store.state.token }
+        })
+        .then(res => {
+          this.scheduleDialog = false;
+          this.formValidSchedule = false;
+
+          this.addScheduleLoader = false;
+          this.events = [];
+          this.getEvents();
+
+          this.schedulePicker = [];
+          this.snackbarContent = "Horaire ajouté";
+          this.snackbarColor = "success";
+          this.snackbar = true;
+        })
+        .catch(function(e) {
+          console.log(e);
+        });
+    },
+    resetSchedule() {
+      this.scheduleDialog = false;
+      this.formValidSchedule = false;
+
+      this.addScheduleLoader = false;
+    },
+    allowedDates(val) {
+      if (this.events) {
+        for (let i = 0; i < this.events.length; i++) {
+          if (val == this.events[i].start) {
+            return null;
+          }
+        }
+      }
+
+      return val;
+    },
+    dateSelected(val) {
+      if (val[1]) {
+        let startDate = new Date(val[0]);
+
+        let endDate = new Date(val[1]);
+        const diffTime = Math.abs(endDate - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        this.selectedText = diffDays + 1 + " jours sélectionnés";
+
+        this.formValidSchedule = true;
+      }
+    },
+    getDates(startDate, endDate) {
+      var dateArray = [];
+      var currentDate = moment(startDate);
+      var stopDate = moment(endDate);
+      while (currentDate <= stopDate) {
+        dateArray.push({
+          scheduleDate: moment(currentDate).format("YYYY-MM-DD")
+        });
+        currentDate = moment(currentDate).add(1, "days");
+      }
+      return dateArray;
+    },
+    hoveredEvent(e) {
+      e.event.color = "eventHover";
+    },
+    hoveredEventLeave(e) {
+      e.event.color = "event";
+    },
+
+    getEvents() {
+      this.calendarLoader = true;
+      this.$http
+        .get(
+          "/training-center/" +
+            this.user.id +
+            "/trainer/" +
+            this.trainerID +
+            "/schedule/findAll",
+          {
+            headers: { Authorization: "Bearer " + this.$store.state.token }
+          }
+        )
+        .then(res => {
+          console.log(res.data);
+          let events = res.data;
+
+          events.forEach((event, i) => {
+            this.events.push({
+              id: event.id,
+              name: "",
+              start: event.scheduleDate,
+              end: event.scheduleDate,
+              color: "event"
+            });
+          });
+
+          this.calendarLoader = false;
+        })
+        .catch(e => {
+          console.log(e.response);
+          this.calendarLoader = false;
+        });
+    },
+
+    openViewScheduleDialog(id) {
+      this.formValidSchedule = false;
+      this.events = [];
+      this.trainerID = id;
+      this.getEvents();
+      this.viewScheduleDialog = true;
     }
   },
   computed: {
@@ -480,6 +788,24 @@ export default {
     },
     user() {
       return this.$store.getters.getUser;
+    },
+    title() {
+      const { start, end } = this;
+      if (!start || !end) {
+        return "";
+      }
+
+      const startMonth = this.monthFormatter(start);
+
+      const startYear = start.year;
+
+      return `${startMonth} ${startYear}`;
+    },
+    monthFormatter() {
+      return this.$refs.calendar.getFormatter({
+        timeZone: "UTC",
+        month: "long"
+      });
     }
   }
 };
