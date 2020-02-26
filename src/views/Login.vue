@@ -14,7 +14,7 @@
           <v-col cols="12" sm="8" md="4">
             <v-card class="elevation-12">
               <v-toolbar color="primary" dark flat>
-                <v-toolbar-title>Training Center Dashboard</v-toolbar-title>
+                <v-toolbar-title>Admin Dashboard</v-toolbar-title>
                 <v-spacer />
               </v-toolbar>
               <v-card-text>
@@ -68,7 +68,7 @@ export default {
     login: function() {
       this.loginLoader = true;
       this.$http
-        .post("/training-center/authenticate", {
+        .post("/admin/authenticate", {
           username: this.email,
           password: this.password
         })
@@ -77,10 +77,10 @@ export default {
           let Uid = user.id;
           let token = res.data.token;
 
-          localStorage.removeItem("training_center_user_data");
+          localStorage.removeItem("admin_user_data");
           localStorage.removeItem("regions");
 
-          this.$cookies.set("training_center_token", token, 60 * 60 * 1);
+          this.$cookies.set("admin_token", token, 60 * 60 * 1);
 
           this.$store.commit("saveUser", { user });
 

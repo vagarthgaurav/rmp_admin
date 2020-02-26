@@ -3,13 +3,14 @@
     <v-app-bar color="primary" dark app flat>
       <v-app-bar-nav-icon color="white" @click.stop="drawer = !drawer" v-if="isLoggedIn"></v-app-bar-nav-icon>
 
-      <v-toolbar-title>Training Center Dashboard</v-toolbar-title>
+      <v-toolbar-title>Admin Dashboard</v-toolbar-title>
 
       <v-spacer></v-spacer>
       <v-btn outlined @click="logout" v-if="isLoggedIn">Logout</v-btn>
     </v-app-bar>
 
     <v-navigation-drawer
+      dark
       v-if="isLoggedIn"
       app
       v-model="drawer"
@@ -57,8 +58,18 @@ export default {
           icon: "mdi-clipboard-account-outline",
           to: "/profile"
         },
-        { title: "Courses", icon: "mdi-view-dashboard-outline", to: "/" },
-        { title: "Trainers", icon: "mdi-alpha-t-box-outline", to: "/trainers" }
+        {
+          title: "Training Centers",
+          icon: "mdi-map-marker-radius-outline",
+          to: "/"
+        },
+        { title: "Trainers", icon: "mdi-alpha-t-box-outline", to: "/trainers" },
+        {
+          title: "Customers",
+          icon: "mdi-account-group-outline",
+          to: "/customers"
+        },
+        { title: "Cities", icon: "mdi-map-outline", to: "/cities" }
       ]
     };
   },

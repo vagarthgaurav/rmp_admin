@@ -4,6 +4,8 @@ import VueRouter from 'vue-router';
 import Home from '../views/Home.vue';
 import Profile from '../views/Profile.vue';
 import Trainers from '../views/Trainers.vue';
+import Customers from '../views/Customers.vue';
+import Cities from '../views/Cities.vue';
 
 import Login from '../views/Login.vue';
 
@@ -38,6 +40,22 @@ const routes = [
 		path: '/trainers',
 		name: 'trainer',
 		component: Trainers,
+		meta: {
+			requiresAuth: true
+		}
+	},
+	{
+		path: '/customers',
+		name: 'customers',
+		component: Customers,
+		meta: {
+			requiresAuth: true
+		}
+	},
+	{
+		path: '/cities',
+		name: 'cities',
+		component: Cities,
 		meta: {
 			requiresAuth: true
 		}

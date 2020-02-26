@@ -12,9 +12,11 @@ export default new Vuetify({
 	theme: {
 		themes: {
 			light: {
-				primary: '#0B2027',
-				secondary: '#70A9A1',
-				button: '#40798C'
+				primary: '#501537',
+				secondary: '#922D50',
+				button: '#40798C',
+				event: '#820263',
+				eventHover: '#FF5376',
 			}
 		}
 	}

@@ -10,21 +10,21 @@ let root = 'https://api.formavisioplus.com/v1';
 
 export default new Vuex.Store({
 	state: {
-		token: VueCookies.get('training_center_token') || ''
+		token: VueCookies.get('admin_token') || ''
 	},
 	mutations: {
 		saveUser: (state, { user }) => {
-			localStorage.setItem('training_center_user_data', JSON.stringify(user));
+			localStorage.setItem('admin_user_data', JSON.stringify(user));
 		},
 		signout: () => {
-			VueCookies.remove('training_center_token');
-			localStorage.removeItem('training_center_user_data');
+			VueCookies.remove('admin_token');
+			localStorage.removeItem('admin_user_data');
 		}
 	},
 	getters: {
 		isLoggedIn: (state) => !!state.token,
 		getUser: () => {
-			return JSON.parse(localStorage.getItem('training_center_user_data'));
+			return JSON.parse(localStorage.getItem('admin_user_data'));
 		},
 	},
 	actions: {

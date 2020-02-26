@@ -1,191 +1,149 @@
 <template>
   <div class="home">
-    <v-container class="mt-12">
-      <v-tabs background-color="primary lighten-2" class="elevation-2" dark>
-        <v-tabs-slider></v-tabs-slider>
+    <v-container>
+      <v-card flat tile width="95%" class="mx-auto">
+        <v-card-text>
+          <v-card class="mx-auto">
+            <v-card-title>
+              Training Centers
+              <v-spacer></v-spacer>
+              <v-text-field
+                v-model="search"
+                append-icon="mdi-account-search-outline"
+                label="Search"
+                single-line
+                hide-details
+              ></v-text-field>
 
-        <v-tab :href="'#tab-1'">Active</v-tab>
-        <v-tab :href="'#tab-2'">Ended</v-tab>
-        <v-tab :href="'#tab-3'">Completed</v-tab>
-        <v-tab :href="'#tab-4'">Cancelled</v-tab>
+              <v-tooltip bottom>
+                <template v-slot:activator="{ on }">
+                  <v-btn
+                    fab
+                    class="mx-5 primary--text"
+                    color="secondary"
+                    v-on="on"
+                    @click="registerTrainingCenterDialog = true"
+                  >
+                    <v-icon color="white">mdi-map-marker-plus-outline</v-icon>
+                  </v-btn>
+                </template>
+                <span>Add training center</span>
+              </v-tooltip>
+            </v-card-title>
 
-        <!-- ------------------------------------Active internships------------------------------ -->
-        <v-tab-item :value="'tab-1'">
-          <v-card flat tile>
-            <v-card-text>
-              <v-card class="mx-auto">
-                <v-card-title>
-                  Active internships
-                  <v-spacer></v-spacer>
-                  <v-text-field
-                    v-model="search"
-                    append-icon="mdi-account-search-outline"
-                    label="Search"
-                    single-line
-                    hide-details
-                  ></v-text-field>
+            <v-snackbar v-model="snackbar" :color="snackbarColor">
+              {{ snackbarContent }}
+              <v-btn text @click="snackbar = false" timeout="3000">Close</v-btn>
+            </v-snackbar>
 
-                  <v-tooltip bottom>
-                    <template v-slot:activator="{ on }">
-                      <v-btn
-                        fab
-                        class="mx-5 primary--text"
-                        color="secondary"
-                        v-on="on"
-                        @click="addClass"
-                      >
-                        <v-icon>mdi-card-plus</v-icon>
-                      </v-btn>
-                    </template>
-                    <span>Add new course</span>
-                  </v-tooltip>
-                </v-card-title>
+            <v-data-table
+              :search="search"
+              :headers="trainingCenterHeaders"
+              :items="trainingCenterList"
+              class="elevation-1"
+              @click:row="rowSelect"
+              :loading="trainingCenterLoader"
+            >
+              <template v-slot:item.emailVerified="{ item }">
+                <v-chip dark v-if="item.emailVerified" color="green">
+                  <v-icon>mdi-email-check-outline</v-icon>
+                </v-chip>
+                <v-chip dark v-else color="red">
+                  <v-icon>mdi-email-alert-outline</v-icon>
+                </v-chip>
+              </template>
 
-                <v-snackbar v-model="snackbar" :color="snackbarColor">
-                  {{ snackbarContent }}
-                  <v-btn text @click="snackbar = false" timeout="3000">Close</v-btn>
-                </v-snackbar>
+              <template v-slot:item.accountNonLocked="{ item }">
+                <v-chip dark v-if="item.accountNonLocked == true" color="green">
+                  <v-icon>mdi-account-tie-outline</v-icon>
+                </v-chip>
+                <v-chip dark v-else color="red">
+                  <v-icon>mdi-account-off-outline</v-icon>
+                </v-chip>
+              </template>
 
-                <v-data-table
-                  :search="search"
-                  :headers="headers"
-                  :items="allCourses"
-                  class="elevation-1"
-                  @click:row="rowSelect"
-                  :loading="ongoingCoursesLoader"
-                >
-                  <template v-slot:item.trainingCenterLocation.name="{ item }">
-                    <span style="text-transform: capitalize">{{ item.trainingCenterLocation.name }}</span>
-                  </template>
-                  <template v-slot:item.trainingCenterLocation.city.cityName="{ item }">
-                    <span
-                      style="text-transform: capitalize"
-                    >{{ item.trainingCenterLocation.city.cityName }} - {{ item.trainingCenterLocation.city.pinCode }}</span>
-                  </template>
-                  <template v-slot:item.startingDate="{ item }">{{ formatDate(item.startingDate) }}</template>
+              <template v-slot:item.action="{ item }">
+                <!-- <v-tooltip bottom>
+                <template v-slot:activator="{ on }">
+                  <v-btn text fab small @click="openLocationsDialog(item.trainingCenterLocations)">
+                    <v-icon right class="mr-2" v-on="on">mdi-map-marker-multiple-outline</v-icon>
+                  </v-btn>
+                </template>
+                <span>View Locations</span>
+                </v-tooltip>-->
 
-                  <template v-slot:item.endingDate="{ item }">{{ formatDate(item.endingDate) }}</template>
-
-                  <template v-slot:item.actualNumberOfParticipant="{ item }">
-                    <v-chip
+                <v-tooltip bottom>
+                  <template v-slot:activator="{ on }">
+                    <v-btn
                       dark
-                      v-if="item.actualNumberOfParticipant >=5"
-                      color="green"
-                    >{{ item.actualNumberOfParticipant }}/{{item.maximumNumberOfParticipant}}</v-chip>
-                    <v-chip
-                      dark
-                      v-else
-                      color="red"
-                    >{{ item.actualNumberOfParticipant }}/{{item.maximumNumberOfParticipant}}</v-chip>
-                  </template>
-
-                  <template v-slot:item.action="{ item }">
-                    <v-tooltip bottom>
-                      <template v-slot:activator="{ on }">
-                        <v-btn text fab small @click="openParticipantDialog(item.id, 'ongoing')">
-                          <v-icon right class="mr-2" v-on="on">mdi-account-box-multiple-outline</v-icon>
-                        </v-btn>
-                      </template>
-                      <span>View Participants</span>
-                    </v-tooltip>
-                  </template>
-                </v-data-table>
-              </v-card>
-            </v-card-text>
-          </v-card>
-        </v-tab-item>
-        <!-- ------------------------------------------------------------------------------------ -->
-
-        <!-- ------------------------------------Ended internships---------------------------- -->
-        <v-tab-item :value="'tab-2'">
-          <v-card flat tile>
-            <v-card-text>
-              <v-card flat tile>
-                <v-card-text>
-                  <v-card class="mx-auto">
-                    <v-card-title>
-                      Ended internships
-                      <v-spacer></v-spacer>
-                      <v-text-field
-                        v-model="search"
-                        append-icon="mdi-account-search-outline"
-                        label="Search"
-                        single-line
-                        hide-details
-                      ></v-text-field>
-                    </v-card-title>
-
-                    <v-snackbar v-model="snackbar" :color="snackbarColor">
-                      {{ snackbarContent }}
-                      <v-btn text @click="snackbar = false" timeout="3000">Close</v-btn>
-                    </v-snackbar>
-
-                    <v-data-table
-                      :search="search"
-                      :headers="headers"
-                      :items="endedCourses"
-                      class="elevation-1"
-                      @click:row="rowSelect"
-                      :loading="endedCoursesLoader"
+                      class="elevation-1 mr-5"
+                      color="blue darken-4"
+                      fab
+                      small
+                      @click="openCoursesDialog(item.id)"
                     >
-                      <template v-slot:item.trainingCenterLocation.name="{ item }">
-                        <span
-                          style="text-transform: capitalize"
-                        >{{ item.trainingCenterLocation.name }}</span>
-                      </template>
-                      <template v-slot:item.trainingCenterLocation.city.cityName="{ item }">
-                        <span
-                          style="text-transform: capitalize"
-                        >{{ item.trainingCenterLocation.city.cityName }} - {{ item.trainingCenterLocation.city.pinCode }}</span>
-                      </template>
-                      <template
-                        v-slot:item.startingDate="{ item }"
-                      >{{ formatDate(item.startingDate) }}</template>
+                      <v-icon right class="mr-2" v-on="on">mdi-folder-multiple-outline</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>View Courses</span>
+                </v-tooltip>
 
-                      <template v-slot:item.endingDate="{ item }">{{ formatDate(item.endingDate) }}</template>
+                <v-tooltip bottom v-if="item.accountNonLocked == true">
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      class="elevation-1"
+                      color="error darken-2"
+                      fab
+                      small
+                      @click="openBlockUserDialog(item.id, item.accountNonLocked)"
+                      :disabled="item.id == user.id"
+                    >
+                      <v-icon right class="mr-2" v-on="on">mdi-account-cancel-outline</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Block User</span>
+                </v-tooltip>
 
-                      <template v-slot:item.actualNumberOfParticipant="{ item }">
-                        <v-chip
-                          dark
-                          v-if="item.actualNumberOfParticipant >=5"
-                          color="green"
-                        >{{ item.actualNumberOfParticipant }}/{{item.maximumNumberOfParticipant}}</v-chip>
-                        <v-chip
-                          dark
-                          v-else
-                          color="red"
-                        >{{ item.actualNumberOfParticipant }}/{{item.maximumNumberOfParticipant}}</v-chip>
-                      </template>
-
-                      <template v-slot:item.action="{ item }">
-                        <v-tooltip bottom>
-                          <template v-slot:activator="{ on }">
-                            <v-btn text fab small @click="completeCourse(item)">
-                              <v-icon right class="mr-2" v-on="on">mdi-progress-check</v-icon>
-                            </v-btn>
-                          </template>
-                          <span>View Participants</span>
-                        </v-tooltip>
-                      </template>
-                    </v-data-table>
-                  </v-card>
-                </v-card-text>
-              </v-card>
-            </v-card-text>
+                <v-tooltip bottom v-else>
+                  <template v-slot:activator="{ on }">
+                    <v-btn
+                      class="elevation-1"
+                      color="success darken-2"
+                      fab
+                      small
+                      @click="openBlockUserDialog(item.id, item.accountNonLocked)"
+                      :disabled="item.id == user.id"
+                    >
+                      <v-icon right class="mr-2" v-on="on">mdi-account-check-outline</v-icon>
+                    </v-btn>
+                  </template>
+                  <span>Unblock User</span>
+                </v-tooltip>
+              </template>
+            </v-data-table>
           </v-card>
-        </v-tab-item>
+        </v-card-text>
+      </v-card>
+    </v-container>
+    <v-dialog v-model="coursesDialog" width="80%" persistent>
+      <v-card>
+        <v-card-title class="headline primary white--text pa-2" primary-title>Courses</v-card-title>
+        <v-card-text class="pa-3">
+          <v-tabs background-color="primary lighten-2" class="elevation-2" dark>
+            <v-tabs-slider></v-tabs-slider>
 
-        <!-- ----------------------------------------------------------------------------------- -->
+            <v-tab :href="'#tab-1'" @click="getAllCourses">Active</v-tab>
+            <v-tab :href="'#tab-2'" @click="getEndedCourses">Ended</v-tab>
+            <v-tab :href="'#tab-3'" @click="getCompletedCourses">Completed</v-tab>
+            <!-- <v-tab :href="'#tab-4'" @click="getCancelledCourses">Cancelled</v-tab> -->
 
-        <!-- ------------------------------------Completed internships--------------------------- -->
-        <v-tab-item :value="'tab-3'">
-          <v-card flat tile>
-            <v-card-text>
+            <!-- ------------------------------------Active internships------------------------------ -->
+            <v-tab-item :value="'tab-1'">
               <v-card flat tile>
                 <v-card-text>
                   <v-card class="mx-auto">
                     <v-card-title>
-                      Completed internships
+                      Active internships
                       <v-spacer></v-spacer>
                       <v-text-field
                         v-model="search"
@@ -194,6 +152,21 @@
                         single-line
                         hide-details
                       ></v-text-field>
+
+                      <v-tooltip bottom>
+                        <template v-slot:activator="{ on }">
+                          <v-btn
+                            fab
+                            class="mx-5 primary--text"
+                            color="secondary"
+                            v-on="on"
+                            @click="addClass"
+                          >
+                            <v-icon>mdi-card-plus</v-icon>
+                          </v-btn>
+                        </template>
+                        <span>Add new course</span>
+                      </v-tooltip>
                     </v-card-title>
 
                     <v-snackbar v-model="snackbar" :color="snackbarColor">
@@ -204,10 +177,10 @@
                     <v-data-table
                       :search="search"
                       :headers="headers"
-                      :items="completedCourses"
+                      :items="allCourses"
                       class="elevation-1"
                       @click:row="rowSelect"
-                      :loading="completedCoursesLoader"
+                      :loading="ongoingCoursesLoader"
                     >
                       <template v-slot:item.trainingCenterLocation.name="{ item }">
                         <span
@@ -245,7 +218,8 @@
                               text
                               fab
                               small
-                              @click="openParticipantDialog(item.id, 'completed')"
+                              @click="openParticipantDialog(item.id, 'ongoing')"
+                              :disabled="item.actualNumberOfParticipant == 0"
                             >
                               <v-icon right class="mr-2" v-on="on">mdi-account-box-multiple-outline</v-icon>
                             </v-btn>
@@ -257,13 +231,206 @@
                   </v-card>
                 </v-card-text>
               </v-card>
-            </v-card-text>
-          </v-card>
-        </v-tab-item>
-        <!-- ------------------------------------------------------------------------------------ -->
+            </v-tab-item>
+            <!-- ------------------------------------------------------------------------------------ -->
 
-        <!-- ------------------------------------Canceled internships---------------------------- -->
-        <v-tab-item :value="'tab-4'">
+            <!-- ------------------------------------Ended internships---------------------------- -->
+            <v-tab-item :value="'tab-2'">
+              <v-card flat tile>
+                <v-card-text>
+                  <v-card flat tile>
+                    <v-card-text>
+                      <v-card class="mx-auto">
+                        <v-card-title>
+                          Ended internships
+                          <v-spacer></v-spacer>
+                          <v-text-field
+                            v-model="search"
+                            append-icon="mdi-account-search-outline"
+                            label="Search"
+                            single-line
+                            hide-details
+                          ></v-text-field>
+                        </v-card-title>
+
+                        <v-snackbar v-model="snackbar" :color="snackbarColor">
+                          {{ snackbarContent }}
+                          <v-btn text @click="snackbar = false" timeout="3000">Close</v-btn>
+                        </v-snackbar>
+
+                        <v-data-table
+                          :search="search"
+                          :headers="headers"
+                          :items="endedCourses"
+                          class="elevation-1"
+                          @click:row="rowSelect"
+                          :loading="endedCoursesLoader"
+                        >
+                          <template v-slot:item.trainingCenterLocation.name="{ item }">
+                            <span
+                              style="text-transform: capitalize"
+                            >{{ item.trainingCenterLocation.name }}</span>
+                          </template>
+                          <template v-slot:item.trainingCenterLocation.city.cityName="{ item }">
+                            <span
+                              style="text-transform: capitalize"
+                            >{{ item.trainingCenterLocation.city.cityName }} - {{ item.trainingCenterLocation.city.pinCode }}</span>
+                          </template>
+                          <template
+                            v-slot:item.startingDate="{ item }"
+                          >{{ formatDate(item.startingDate) }}</template>
+
+                          <template
+                            v-slot:item.endingDate="{ item }"
+                          >{{ formatDate(item.endingDate) }}</template>
+
+                          <template v-slot:item.actualNumberOfParticipant="{ item }">
+                            <v-chip
+                              dark
+                              v-if="item.actualNumberOfParticipant >=5"
+                              color="green"
+                            >{{ item.actualNumberOfParticipant }}/{{item.maximumNumberOfParticipant}}</v-chip>
+                            <v-chip
+                              dark
+                              v-else
+                              color="red"
+                            >{{ item.actualNumberOfParticipant }}/{{item.maximumNumberOfParticipant}}</v-chip>
+                          </template>
+
+                          <template v-slot:item.action="{ item }">
+                            <v-tooltip bottom>
+                              <template v-slot:activator="{ on }">
+                                <v-btn text fab small @click="completeCourse(item)">
+                                  <v-icon right class="mr-2" v-on="on">mdi-progress-check</v-icon>
+                                </v-btn>
+                              </template>
+                              <span>Confirm completion</span>
+                            </v-tooltip>
+
+                            <v-tooltip bottom>
+                              <template v-slot:activator="{ on }">
+                                <v-btn
+                                  class="mx-2"
+                                  text
+                                  fab
+                                  small
+                                  @click="openParticipantDialog(item.id, 'ended')"
+                                  :disabled="item.actualNumberOfParticipant == 0"
+                                >
+                                  <v-icon
+                                    right
+                                    class="mr-2"
+                                    v-on="on"
+                                  >mdi-account-box-multiple-outline</v-icon>
+                                </v-btn>
+                              </template>
+                              <span>View Participants</span>
+                            </v-tooltip>
+                          </template>
+                        </v-data-table>
+                      </v-card>
+                    </v-card-text>
+                  </v-card>
+                </v-card-text>
+              </v-card>
+            </v-tab-item>
+
+            <!-- ----------------------------------------------------------------------------------- -->
+
+            <!-- ------------------------------------Completed internships--------------------------- -->
+            <v-tab-item :value="'tab-3'">
+              <v-card flat tile>
+                <v-card-text>
+                  <v-card flat tile>
+                    <v-card-text>
+                      <v-card class="mx-auto">
+                        <v-card-title>
+                          Completed internships
+                          <v-spacer></v-spacer>
+                          <v-text-field
+                            v-model="search"
+                            append-icon="mdi-account-search-outline"
+                            label="Search"
+                            single-line
+                            hide-details
+                          ></v-text-field>
+                        </v-card-title>
+
+                        <v-snackbar v-model="snackbar" :color="snackbarColor">
+                          {{ snackbarContent }}
+                          <v-btn text @click="snackbar = false" timeout="3000">Close</v-btn>
+                        </v-snackbar>
+
+                        <v-data-table
+                          :search="search"
+                          :headers="headers"
+                          :items="completedCourses"
+                          class="elevation-1"
+                          @click:row="rowSelect"
+                          :loading="completedCoursesLoader"
+                        >
+                          <template v-slot:item.trainingCenterLocation.name="{ item }">
+                            <span
+                              style="text-transform: capitalize"
+                            >{{ item.trainingCenterLocation.name }}</span>
+                          </template>
+                          <template v-slot:item.trainingCenterLocation.city.cityName="{ item }">
+                            <span
+                              style="text-transform: capitalize"
+                            >{{ item.trainingCenterLocation.city.cityName }} - {{ item.trainingCenterLocation.city.pinCode }}</span>
+                          </template>
+                          <template
+                            v-slot:item.startingDate="{ item }"
+                          >{{ formatDate(item.startingDate) }}</template>
+
+                          <template
+                            v-slot:item.endingDate="{ item }"
+                          >{{ formatDate(item.endingDate) }}</template>
+
+                          <template v-slot:item.actualNumberOfParticipant="{ item }">
+                            <v-chip
+                              dark
+                              v-if="item.actualNumberOfParticipant >=5"
+                              color="green"
+                            >{{ item.actualNumberOfParticipant }}/{{item.maximumNumberOfParticipant}}</v-chip>
+                            <v-chip
+                              dark
+                              v-else
+                              color="red"
+                            >{{ item.actualNumberOfParticipant }}/{{item.maximumNumberOfParticipant}}</v-chip>
+                          </template>
+
+                          <template v-slot:item.action="{ item }">
+                            <v-tooltip bottom>
+                              <template v-slot:activator="{ on }">
+                                <v-btn
+                                  text
+                                  fab
+                                  small
+                                  @click="openParticipantDialog(item.id, 'completed')"
+                                  :disabled="item.actualNumberOfParticipant == 0"
+                                >
+                                  <v-icon
+                                    right
+                                    class="mr-2"
+                                    v-on="on"
+                                  >mdi-account-box-multiple-outline</v-icon>
+                                </v-btn>
+                              </template>
+                              <span>View Participants</span>
+                            </v-tooltip>
+                          </template>
+                        </v-data-table>
+                      </v-card>
+                    </v-card-text>
+                  </v-card>
+                </v-card-text>
+              </v-card>
+            </v-tab-item>
+            <!-- ------------------------------------------------------------------------------------ -->
+
+            <!-- ------------------------------------Canceled internships---------------------------- -->
+            <!-- <v-tab-item :value="'tab-4'">
           <v-card flat tile>
             <v-card-text>
               <v-card flat tile>
@@ -344,11 +511,18 @@
               </v-card>
             </v-card-text>
           </v-card>
-        </v-tab-item>
+            </v-tab-item>-->
 
-        <!-- ----------------------------------------------------------------------------------- -->
-      </v-tabs>
-    </v-container>
+            <!-- ----------------------------------------------------------------------------------- -->
+          </v-tabs>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="red darken-3" class="white--text" @click="coursesDialog = false">close</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <v-dialog v-model="addClassDialog" width="fit-content" persistent>
       <v-card>
@@ -536,7 +710,7 @@
                         <v-list-item-title>
                           <span
                             style="text-transform: capitalize"
-                          >{{ course.trainingCenterLocation.city.cityName }}</span>
+                          >{{course.uniqueIdentifier}} / {{ course.trainingCenterLocation.city.cityName }}</span>
                           - {{formatDate(item.startingDate)}} au {{formatDate(course.endingDate)}}
                         </v-list-item-title>
                       </v-list-item>
@@ -565,11 +739,168 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="blockUserDialog" width="30%">
+      <v-card>
+        <v-card-title class="headline primary white--text pa-2" primary-title>{{blockDialogTitle}}</v-card-title>
+        <v-card-actions class="pt-12 pb-4 mx-2">
+          <v-spacer></v-spacer>
+          <v-btn color="success" @click="blockUnblockUser">Yes</v-btn>
+          <v-btn color="red" dark @click="blockUserDialog = false">No</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-model="registerTrainingCenterDialog">
+      <v-card class="mt-10 mb-12">
+        <v-card-title
+          class="headline primary white--text pa-2"
+          primary-title
+        >Register Training Center</v-card-title>
+        <v-card-text class="my-4 pa-12">
+          <v-form v-model="formRegisterTrainingCenterValid" class="ma-0" ref="registerform">
+            <v-layout row wrap class="justify-space-around">
+              <v-flex xs12 md4 class="px-3">
+                <v-text-field
+                  v-model="trainingCenterName"
+                  :rules="nameRules"
+                  :counter="30"
+                  label="Name"
+                  required
+                ></v-text-field>
+              </v-flex>
+
+              <v-flex xs12 md4 class="px-3">
+                <v-text-field v-model="email" :rules="emailRules" label="E-mail" required></v-text-field>
+              </v-flex>
+
+              <v-flex xs12 md4 class="px-3">
+                <v-text-field
+                  v-model="phonenumber"
+                  :rules="phoneRules"
+                  label="Phone Number"
+                  required
+                ></v-text-field>
+              </v-flex>
+
+              <!-- <v-flex xs12 md6 class="px-3">
+                <v-text-field
+                  type="password"
+                  :rules="passwordRules"
+                  v-model="password"
+                  label="Password"
+                  required
+                ></v-text-field>
+              </v-flex>
+
+              <v-flex xs12 md6 class="px-3">
+                <v-text-field
+                  v-model="repeatPassword"
+                  type="password"
+                  :rules="passwordRules"
+                  label="Repeat Password"
+                  required
+                ></v-text-field>
+              </v-flex>-->
+
+              <v-flex xs12 md6 class="px-3">
+                <v-text-field
+                  v-model="trainingCenterManager"
+                  :rules="nameRules"
+                  label="Training Center Manager"
+                  required
+                ></v-text-field>
+              </v-flex>
+
+              <v-flex xs12 md6 class="px-3">
+                <v-text-field
+                  v-model="sirenNumber"
+                  :rules="sirenRules"
+                  label="Siren Number"
+                  required
+                ></v-text-field>
+              </v-flex>
+
+              <v-flex xs12 class="px-3">
+                <h2 class="my-6">Main Location</h2>
+              </v-flex>
+              <v-flex xs12 md6 class="px-3">
+                <v-text-field v-model="locationName" :rules="rules" label="Name" required></v-text-field>
+              </v-flex>
+
+              <v-flex xs12 md6 class="px-3">
+                <v-text-field
+                  v-model="certificateNumber"
+                  :rules="[v => !!v || 'Certificate Number is required']"
+                  label="Certificate number"
+                  required
+                ></v-text-field>
+              </v-flex>
+
+              <v-flex xs12 md6 class="px-3">
+                <v-text-field
+                  v-model="locationPerson"
+                  :rules="nameRules"
+                  label="Person of Contact"
+                  required
+                ></v-text-field>
+              </v-flex>
+
+              <v-flex xs12 md6 class="px-3">
+                <v-text-field
+                  v-model="locationPhoneNumber"
+                  :rules="phoneRules"
+                  label="Training Center Phone Number"
+                  required
+                ></v-text-field>
+              </v-flex>
+
+              <v-flex xs12 md4 class="px-3">
+                <v-text-field v-model="street" :rules="rules" label="Street" required></v-text-field>
+              </v-flex>
+              <v-flex xs12 md4 class="px-3">
+                <v-text-field v-model="pincode" :rules="pincodeRules" label="Pincode" required></v-text-field>
+              </v-flex>
+
+              <v-flex xs12 md4 class="pa-2">
+                <v-select
+                  v-model="city"
+                  :items="cities"
+                  item-text="cityName"
+                  item-value="id"
+                  label="City"
+                  persistent-hint
+                  return-object
+                  single-line
+                  required
+                ></v-select>
+              </v-flex>
+            </v-layout>
+          </v-form>
+        </v-card-text>
+
+        <v-divider></v-divider>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            :disabled="!formRegisterTrainingCenterValid"
+            color="green darken-3"
+            class="white--text px-5"
+            :loading="addTrainingLoader"
+            @click="registerTrainingCenter"
+          >Submit</v-btn>
+
+          <v-btn color="red darken-3" dark @click="resetTrainingCenter()" class="px-5">Clear</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script>
 import { mask } from "vue-the-mask";
+import moment from "moment";
 
 var today = new Date(Date.now()).toISOString().slice(-24, -14);
 
@@ -583,6 +914,10 @@ export default {
       addClassDialog: false,
       classDialogTitle: "Add new course",
       newCoursesLoader: false,
+
+      blockUserDialog: false,
+      blockID: null,
+      blockDialogTitle: "Block User?",
 
       participantsDialog: false,
       participantSearch: "",
@@ -617,6 +952,11 @@ export default {
       trainersListPsycho: [],
       locationList: [],
 
+      trainingCenterList: [],
+      trainingCenterLoader: false,
+      coursesDialog: false,
+      trainingCenterID: null,
+
       classDialog: false,
       smenu: false,
       emenu: false,
@@ -637,10 +977,6 @@ export default {
       price: "",
       address: "",
 
-      pincode: "",
-      city: "",
-      region: "",
-      street: "",
       maxParticipants: null,
       trainerBafm: "",
       trainerPsycho: "",
@@ -650,6 +986,7 @@ export default {
       priceMask: "###",
 
       headers: [
+        { text: "ID", value: "uniqueIdentifier" },
         { text: "Location", value: "trainingCenterLocation.name" },
         { text: "City", value: "trainingCenterLocation.city.cityName" },
         { text: "Start date", value: "startingDate" },
@@ -672,14 +1009,135 @@ export default {
         { text: "Date of Birth", value: "dateOfBirth" },
         { text: "Address", value: "address" },
         { text: "Action", value: "action", sortable: false }
+      ],
+
+      trainingCenterHeaders: [
+        { text: "Name", value: "firstname" },
+        { text: "Manager", value: "trainingCenterManager" },
+        { text: "Siren Number", value: "sirenNumber" },
+        { text: "Email", value: "email" },
+        { text: "Phone Number", value: "phoneNumber" },
+        { text: "Email Verified", value: "emailVerified" },
+        { text: "Account Blocked", value: "accountNonLocked" },
+        { text: "Actions", value: "action", sortable: false }
+      ],
+
+      registerTrainingCenterDialog: false,
+
+      formRegisterTrainingCenterValid: false,
+      email: "",
+      phonenumber: "",
+      sirenNumber: "",
+      trainingCenterName: "",
+      trainingCenterManager: "",
+      day: "",
+      month: "",
+      year: "",
+      street: "",
+      pincode: "",
+      city: "",
+      certificateNumber: "",
+      locationPhoneNumber: "",
+      locationName: "",
+      locationPerson: "",
+
+      password: "",
+      repeatPassword: "",
+
+      cities: [],
+
+      days: [
+        "01",
+        "02",
+        "03",
+        "04",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "26",
+        "27",
+        "28",
+        "29",
+        "30",
+        "31"
+      ],
+      months: [
+        { item: "Janvier", value: "01" },
+        { item: "Février", value: "02" },
+        { item: "Mars", value: "03" },
+        { item: "Avril", value: "04" },
+        { item: "Mai", value: "05" },
+        { item: "Juin", value: "06" },
+        { item: "Juillet", value: "07" },
+        { item: "Aout", value: "08" },
+        { item: "Septembre", value: "09" },
+        { item: "Octobre", value: "10" },
+        { item: "Novembre", value: "11" },
+        { item: "Décembre", value: "12" }
+      ],
+
+      addTrainingLoader: false,
+
+      gender: [
+        { item: "Male", value: "M" },
+        { item: "Female", value: "F" }
+      ],
+
+      emailRules: [
+        v => !!v || "E-mail is required",
+        v => /.+@.+\..+/.test(v) || "E-mail must be valid"
+      ],
+      phoneRules: [
+        v => !!v || "Phone Number is required",
+        v => !isNaN(v) || "Phone number must be valid",
+        v => (v && v.length === 10) || "Phone Number must be 10 characters"
+      ],
+      sirenRules: [
+        v => !!v || "Siren is required",
+        v => !isNaN(v) || "Siren number must be valid",
+        v => (v && v.length === 9) || "Siren number must be 9 characters"
+      ],
+      pincodeRules: [
+        v => !!v || "Pincode is required",
+        v => !isNaN(v) || "Pincode must be valid",
+        v => (v && v.length === 5) || "Pincode must be 5 characters"
+      ],
+      nameRules: [
+        v => !!v || "Name is required",
+        v => isNaN(v) || "Name must be valid"
+      ],
+      rules: [v => !!v || "Field is required"],
+      passwordRules: [
+        v => !!v || "Password is required",
+        v => (v && v.length >= 6) || "Pincode must be 6 characters"
+      ],
+      trainerType: [
+        { item: "Psychologue", value: 2 },
+        { item: "BAFM", value: 1 }
       ]
     };
   },
   created() {
-    this.getAllCourses();
-    this.getEndedCourses();
-    this.getCancelledCourses();
-    this.getCompletedCourses();
+    this.getAllTrainingCenters();
+
     // ---------------------- Get all regions --------------------------------
     this.$http
       .get("/public/region/findAll")
@@ -690,6 +1148,15 @@ export default {
         console.log(e);
       });
     // -----------------------------------------------------------------------
+
+    this.$http
+      .get("/public/findCities")
+      .then(res => {
+        this.cities = res.data;
+      })
+      .catch(e => {
+        console.log(e.response);
+      });
   },
   methods: {
     formatDate(date) {
@@ -783,8 +1250,10 @@ export default {
 
       this.$http
         .post(
-          "/training-center/" +
+          "/admin/" +
             this.user.id +
+            "/training-center/" +
+            this.trainingCenterID +
             "/create-internship/bafm/" +
             this.trainerBafm +
             "/psychologist/" +
@@ -805,32 +1274,21 @@ export default {
             this.snackbarColor = "warning";
             this.snackbar = true;
           } else {
-            this.$http
-              .get(
-                "/training-center/" + this.user.id + "/internship/findAll ",
-                {
-                  headers: {
-                    Authorization: "Bearer " + this.$store.state.token
-                  }
-                }
-              )
-              .then(res => {
-                this.snackbarContent = "Course added";
-                this.snackbarColor = "success";
-                this.snackbar = true;
+            this.snackbarContent = "Course added";
+            this.snackbarColor = "success";
+            this.snackbar = true;
 
-                this.getAllCourses();
-              })
-              .catch(e => {
-                console.log(e.response);
-              });
+            this.getAllCourses();
+            this.getEndedCourses();
+            this.getCancelledCourses();
+            this.getCompletedCourses();
             this.reset();
           }
         })
         .catch(e => {
           console.log(e.response);
-          if (e.response.status == 404) {
-            this.snackbarContent = "Trainer not available for selected date";
+          if (e.response.status != 500) {
+            this.snackbarContent = e.response.data.message;
             this.snackbarColor = "warning";
             this.snackbar = true;
           }
@@ -853,11 +1311,11 @@ export default {
       this.participantsLoader = true;
       this.$http
         .get(
-          "/training-center/" +
+          "/admin/" +
             this.user.id +
             "/findAll-customer/internship/" +
             id +
-            "/status/2",
+            "/status/1",
           {
             headers: { Authorization: "Bearer " + this.$store.state.token }
           }
@@ -881,18 +1339,17 @@ export default {
       this.participantsDialogShowActions = false;
     },
     moveStudent() {
-      console.log(this.newClass, this.oldClass, this.selectedStudentId);
       let newId = this.newClass,
         oldId = this.oldClass,
         studentId = this.selectedStudentId;
 
       this.$http
         .get(
-          "/training-center/" +
+          "/admin/" +
             this.user.id +
             "/findAll-customer/internship/" +
             this.newClass +
-            "/status/2",
+            "/status/1",
           {
             headers: { Authorization: "Bearer " + this.$store.state.token }
           }
@@ -902,7 +1359,7 @@ export default {
           for (let i = 0; i <= participants.length - 1; i++) {
             if (this.selectedStudentId == participants[i].id) {
               this.snackbarContent =
-                "Student cannot be moved to the new course as they are already registered it.";
+                "Student cannot be moved to the new course as they are already registered to it.";
               this.snackbarColor = "warning";
               this.snackbar = true;
 
@@ -913,7 +1370,7 @@ export default {
           }
         })
         .catch(e => {
-          console.log(e);
+          console.log(e.response);
           if (e.response.status == 404) {
             this.confirmMoveStudent(oldId, newId, studentId);
           }
@@ -934,16 +1391,24 @@ export default {
       // -------------------------- Get all courses ------------------------------
       this.ongoingCoursesLoader = true;
       this.$http
-        .get("/training-center/" + this.user.id + "/internship/findAll/1", {
-          headers: { Authorization: "Bearer " + this.$store.state.token }
-        })
+        .get(
+          "/admin/" +
+            this.user.id +
+            "/training-center/" +
+            this.trainingCenterID +
+            "/internship/findAll/1",
+          {
+            headers: { Authorization: "Bearer " + this.$store.state.token }
+          }
+        )
         .then(res => {
-          //console.log(res.data);
+          //console.log("All courses");
           this.allCourses = res.data;
           this.ongoingCoursesLoader = false;
         })
         .catch(e => {
           console.log(e.response);
+          this.allCourses = [];
           this.ongoingCoursesLoader = false;
         });
       // ------------------------------------------------------------------------
@@ -953,64 +1418,78 @@ export default {
       this.cancelledCoursesLoader = true;
       this.$http
         .get(
-          "/training-center/" +
+          "/admin/" +
             this.user.id +
-            "/internship-completed/findAll/0",
+            "/training-center/" +
+            this.trainingCenterID +
+            "/internship/findAll/0",
           {
             headers: { Authorization: "Bearer " + this.$store.state.token }
           }
         )
         .then(res => {
-          console.log(res.data);
+          //console.log(res.data);
+          // console.log("All cancelled courses");
           this.cancelledCourses = res.data;
           this.cancelledCoursesLoader = false;
         })
         .catch(e => {
           console.log(e.response);
+          this.cancelledCourses = [];
           this.cancelledCoursesLoader = false;
         });
       // ------------------------------------------------------------------------
     },
     getCompletedCourses() {
-      // -------------------------- Get cancelled courses ------------------------------
+      // -------------------------- Get Completed courses ------------------------------
       this.completedCoursesLoader = true;
       this.$http
         .get(
-          "/training-center/" +
+          "/admin/" +
             this.user.id +
-            "/internship-completed/findAll/2",
+            "/training-center/" +
+            this.trainingCenterID +
+            "/internship/findAll/2",
           {
             headers: { Authorization: "Bearer " + this.$store.state.token }
           }
         )
         .then(res => {
+          //console.log("All completed courses");
+
           this.completedCourses = res.data;
           this.completedCoursesLoader = false;
         })
         .catch(e => {
           console.log(e.response);
+          this.completedCourses = [];
           this.completedCoursesLoader = false;
         });
       // ------------------------------------------------------------------------
     },
     getEndedCourses() {
-      // -------------------------- Get cancelled courses ------------------------------
+      // -------------------------- Get Ended courses ------------------------------
       this.completedCoursesLoader = true;
       this.$http
         .get(
-          "/training-center/" +
+          "/admin/" +
             this.user.id +
-            "/internship-completed/findAll/3",
+            "/training-center/" +
+            this.trainingCenterID +
+            "/internship/findAll/3",
           {
             headers: { Authorization: "Bearer " + this.$store.state.token }
           }
         )
         .then(res => {
-          this.ToCompleteCourses = res.data;
+          //console.log(res.data);
+          //console.log('All ended courses');
+          this.endedCourses = res.data;
           this.ToCompleteCoursesLoader = false;
         })
         .catch(e => {
           console.log(e.response);
+          this.endedCourses = [];
           this.toCompleteCoursesLoader = false;
         });
       // ------------------------------------------------------------------------
@@ -1018,7 +1497,7 @@ export default {
     confirmMoveStudent(oldId, newId, studentId) {
       this.$http
         .put(
-          "/training-center/" +
+          "/admin/" +
             this.user.id +
             "/move/customer/" +
             studentId +
@@ -1034,8 +1513,6 @@ export default {
           }
         )
         .then(res => {
-          console.log(res);
-
           if (res.status == 200) {
             this.confirmChangeCourseDialog = false;
             this.closeParticipantsDialog();
@@ -1051,22 +1528,190 @@ export default {
           console.log(e.response);
         });
     },
-    completeCourses(item) {
-      console.log(item);
+    completeCourse(item) {
+      //console.log(item);
+      // TODO -- Complete course
+      this.$http
+        .put(
+          "/training-center/" +
+            this.user.id +
+            "/complete-internship/" +
+            item.id,
+          {},
+          {
+            headers: { Authorization: "Bearer " + this.$store.state.token }
+          }
+        )
+        .then(res => {
+          console.log(res.data);
+          this.getEndedCourses();
+          this.getCompletedCourses();
 
-      // this.$http
-      //   .put("/training-center/00/complete-internship/00")
-      //   .then(res => {
-      //     console.log(res);
-      //   })
-      //   .catch(e => {
-      //     console.log(e.response);
-      //   });
+          this.snackbarContent = "Course Marked as completed.";
+          this.snackbarColor = "success";
+          this.snackbar = true;
+        })
+        .catch(e => {
+          console.log(e.response);
+          this.snackbarContent = "Error. Contact Admin.";
+          this.snackbarColor = "Error";
+          this.snackbar = true;
+        });
+    },
+    getAllTrainingCenters() {
+      this.trainingCenterLoader = true;
+
+      this.$http
+        .get("/admin/" + this.user.id + "/findAll/3", {
+          headers: { Authorization: "Bearer " + this.$store.state.token }
+        })
+        .then(res => {
+          this.trainingCenterList = res.data;
+          this.trainingCenterLoader = false;
+        })
+        .catch(e => {
+          console.log(e.response);
+          this.trainingCenterList = [];
+          this.trainingCenterLoader = false;
+        });
+    },
+    openCoursesDialog(item) {
+      this.trainingCenterID = item;
+
+      this.getAllCourses();
+      this.getEndedCourses();
+      this.getCancelledCourses();
+      this.getCompletedCourses();
+
+      this.coursesDialog = true;
+    },
+    openLocationsDialog(locations) {
+      console.log(locations);
+    },
+    openBlockUserDialog(id, blockedStatus) {
+      if (blockedStatus == false) {
+        this.blockDialogTitle = "Unblock User?";
+      } else {
+        this.blockDialogTitle = "Block User?";
+      }
+      this.blockId = id;
+      this.blockUserDialog = true;
+
+      console.log(blockedStatus);
+    },
+    blockUnblockUser() {
+      this.$http
+        .put(
+          "/admin/" + this.user.id + "/block-user/" + this.blockId,
+          {},
+          {
+            headers: { Authorization: "Bearer " + this.$store.state.token }
+          }
+        )
+        .then(res => {
+          if (res.status == 200) {
+            if (res.data == false) {
+              this.snackbar = true;
+              this.snackbarContent = "User Blocked";
+              this.snackbarColor = "warning";
+            } else {
+              this.snackbar = true;
+              this.snackbarContent = "User Unblocked";
+              this.snackbarColor = "success";
+            }
+          }
+          this.getAllTrainingCenters();
+          this.blockUserDialog = false;
+        })
+        .catch(e => {
+          console.log(e.response);
+        });
+    },
+
+    resetTrainingCenter() {
+      this.formValid = false;
+
+      this.addTrainerLoader = false;
+
+      this.$refs.registerform.reset();
+    },
+    registerTrainingCenter() {
+      if (this.password == this.repeatPassword) {
+        this.addTrainingLoader = true;
+        var data = {
+          name: this.trainingCenterName,
+          dateOfCreation: moment().format("YYYY-MM-DD"),
+          phoneNumber: this.phonenumber,
+          email: this.email,
+          password: this.phonenumber,
+          trainingCenterManager: this.trainingCenterManager,
+          sirenNumber: this.sirenNumber,
+          trainingCenterLocations: [
+            {
+              certificateNumber: this.certificateNumber,
+              name: this.locationName,
+              contactNumber: this.locationPhoneNumber,
+              personOfContact: this.locationPerson,
+              address: this.street,
+              pinCode: this.pincode,
+              isMain: true,
+              city: {
+                id: this.city.id
+              }
+            }
+          ]
+        };
+
+        this.$http
+          .post("/training-center/register", data)
+          .then(res => {
+            console.log(res);
+            this.snackbarContent = "Training center added.";
+            this.snackbarColor = "success";
+            this.snackbar = true;
+
+            this.addTrainingLoader = false;
+            this.resetTrainingCenter();
+            this.getAllTrainingCenters();
+            this.registerTrainingCenterDialog = false;
+          })
+          .catch(e => {
+            console.log(e.response);
+            this.addTrainingLoader = false;
+            if (e.response.status == 409) {
+              this.snackbarContent =
+                "Email or Phone number is already in use. ";
+              this.snackbarColor = "error";
+              this.snackbar = true;
+            } else {
+              this.snackbarContent = "Fatal error. Contact admin. ";
+              this.snackbarColor = "error";
+              this.snackbar = true;
+            }
+          });
+      } else {
+        this.snackbarContent = "Passwords dont match";
+        this.snackbarColor = "error";
+        this.snackbar = true;
+      }
     }
   },
   computed: {
     user() {
       return this.$store.getters.getUser;
+    },
+    years: function() {
+      let d = new Date().getFullYear();
+
+      let end = d - 60;
+      let start = d - 18;
+
+      let t = [];
+      for (let i = start; i >= end; i--) {
+        t.push(i);
+      }
+
+      return t;
     }
   }
 };

@@ -8,7 +8,7 @@
     <v-container class="mt-12">
       <v-card class="mx-auto" width="95%">
         <v-card-title>
-          Trainers
+          Customers
           <v-spacer></v-spacer>
           <v-text-field
             v-model="search"
@@ -24,12 +24,12 @@
                 class="mx-5 primary--text"
                 color="secondary"
                 v-on="on"
-                @click="openTrainerDialog('Add new trainer')"
+                @click="openTrainerDialog('Add new Customer')"
               >
                 <v-icon>mdi-account-plus</v-icon>
               </v-btn>
             </template>
-            <span>Add new trainer</span>
+            <span>Add new customer</span>
           </v-tooltip>
         </v-card-title>
 
@@ -41,14 +41,6 @@
           @click:row="rowSelect"
           :loading="trainersLoader"
         >
-          <template v-slot:item.dateOfBirth="{ item }">{{ formatDate(item.dateOfBirth) }}</template>
-
-          <template v-slot:item.address="{ item }">
-            {{ item.address.address }}, {{item.address.city.cityName.charAt(0).toUpperCase() + item.address.city.cityName.substring(1)}}
-            <br />
-            <span style=" font-style: italic;">{{item.address.city.pinCode}}</span>
-          </template>
-
           <template v-slot:item.gender="{ item }">
             <span dark v-if="item.gender == 'M'">
               <v-icon>mdi-gender-male</v-icon>Male
@@ -56,6 +48,14 @@
             <span dark v-else>
               <v-icon>mdi-gender-female</v-icon>Female
             </span>
+          </template>
+
+          <template v-slot:item.dateOfBirth="{ item }">{{ formatDate(item.dateOfBirth) }}</template>
+
+          <template v-slot:item.address="{ item }">
+            {{ item.address.address }}, {{item.address.city.cityName.charAt(0).toUpperCase() + item.address.city.cityName.substring(1)}}
+            <br />
+            <span style=" font-style: italic;">{{item.address.city.pinCode}}</span>
           </template>
 
           <template v-slot:item.emailVerified="{ item }">
@@ -95,26 +95,10 @@
               <span>View Courses</span>
             </v-tooltip>
 
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on }">
-                <v-btn
-                  dark
-                  class="elevation-1 mr-2 mt-2 mb-2"
-                  color="green darken-4"
-                  fab
-                  small
-                  @click="openViewScheduleDialog(item.id)"
-                >
-                  <v-icon right class="mr-2" v-on="on">mdi-clock-outline</v-icon>
-                </v-btn>
-              </template>
-              <span>View Schedule</span>
-            </v-tooltip>
-
             <v-tooltip bottom v-if="item.accountNonLocked == true">
               <template v-slot:activator="{ on }">
                 <v-btn
-                  class="elevation-1"
+                  class="elevation-1 mr-2 mt-2 mb-2"
                   color="error darken-2"
                   fab
                   small
@@ -130,7 +114,7 @@
             <v-tooltip bottom v-else>
               <template v-slot:activator="{ on }">
                 <v-btn
-                  class="elevation-1"
+                  class="elevation-1 mt-2 mb-2"
                   color="success darken-2"
                   fab
                   small
@@ -153,7 +137,7 @@
         <v-card-text class="my-4">
           <v-form v-model="formValid" class="ma-0" ref="form">
             <v-layout row wrap class="justify-space-around">
-              <v-flex xs12 md6 class="px-3">
+              <v-flex xs12 md4 class="px-3">
                 <v-text-field
                   v-model="firstname"
                   :rules="nameRules"
@@ -163,31 +147,12 @@
                 ></v-text-field>
               </v-flex>
 
-              <v-flex xs12 md6 class="px-3">
+              <v-flex xs12 md4 class="px-3">
                 <v-text-field
                   v-model="lastname"
                   :rules="nameRules"
                   :counter="20"
                   label="Last name"
-                  required
-                ></v-text-field>
-              </v-flex>
-
-              <v-flex xs12 md4 class="px-3">
-                <v-text-field
-                  v-model="email"
-                  :rules="emailRules"
-                  label="E-mail"
-                  required
-                  :disabled="emailDisabled"
-                ></v-text-field>
-              </v-flex>
-
-              <v-flex xs12 md4 class="px-3">
-                <v-text-field
-                  v-model="phonenumber"
-                  :rules="phoneRules"
-                  label="Phone Number"
                   required
                 ></v-text-field>
               </v-flex>
@@ -204,21 +169,25 @@
               </v-flex>
 
               <v-flex xs12 md6 class="px-3">
-                <!-- <v-text-field v-model="city" :rules="nameRules" label="City" required></v-text-field> -->
-                <v-select
-                  v-model="trainingCenter"
-                  :items="trainingCenters"
-                  item-text="firstname"
-                  item-value="id"
-                  label="Training Center"
-                  persistent-hint
-                  return-object
-                  single-line
+                <v-text-field
+                  v-model="email"
+                  :rules="emailRules"
+                  label="E-mail"
                   required
-                ></v-select>
+                  :disabled="emailDisabled"
+                ></v-text-field>
               </v-flex>
 
               <v-flex xs12 md6 class="px-3">
+                <v-text-field
+                  v-model="phonenumber"
+                  :rules="phoneRules"
+                  label="Phone Number"
+                  required
+                ></v-text-field>
+              </v-flex>
+
+              <!-- <v-flex xs12 md6 class="px-3">
                 <v-select
                   v-model="typeOfTrainer"
                   :items="trainerType"
@@ -226,7 +195,7 @@
                   item-value="value"
                   label="Select Type"
                 ></v-select>
-              </v-flex>
+              </v-flex>-->
 
               <v-flex xs12 md12 class="px-3">
                 <v-layout row wrap class="justify-space-between">
@@ -285,14 +254,14 @@
                 ></v-select>
               </v-flex>
 
-              <v-flex xs12 md12 class="px-3">
+              <!-- <v-flex xs12 md12 class="px-3">
                 <v-text-field
                   v-model="certificateNumber"
                   :rules="[v => !!v || 'Certificate Number is required']"
                   label="Certificate number"
                   required
                 ></v-text-field>
-              </v-flex>
+              </v-flex>-->
             </v-layout>
           </v-form>
         </v-card-text>
@@ -602,7 +571,7 @@
 
                           <!-- <template v-slot:item.action="{ item }">
                             
-                          </template>-->
+                          </template> -->
                         </v-data-table>
                       </v-card>
                     </v-card-text>
@@ -706,148 +675,17 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <v-dialog v-model="scheduleDialog" width="fit-content" persistent>
-      <v-card>
-        <v-card-title class="headline primary white--text pa-2" primary-title>Add schedule dates</v-card-title>
-        <v-card-text class="my-4">
-          <v-date-picker
-            v-model="schedulePicker"
-            show-current
-            :min="today"
-            :allowed-dates="allowedDates"
-            range
-            :selected-items-text="selectedText"
-            @input="dateSelected"
-          ></v-date-picker>
-        </v-card-text>
-
-        <v-divider></v-divider>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            :disabled="!formValidSchedule"
-            color="green darken-3"
-            class="white--text px-5"
-            :loading="addScheduleLoader"
-            @click="addSchedule"
-          >Submit</v-btn>
-
-          <v-btn color="red darken-3" dark @click="resetSchedule()" class="px-5">Close</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <v-dialog v-model="viewScheduleDialog" width="80%" persistent>
-      <v-card>
-        <v-card-title class="headline primary white--text pa-2" primary-title>Add schedule dates</v-card-title>
-        <v-card-text class="my-4">
-          <v-row class="fill-height mt-12 elevation-3">
-            <v-progress-linear v-if="calendarLoader" indeterminate color="loader" height="5"></v-progress-linear>
-            <v-col>
-              <v-sheet height="64">
-                <v-toolbar flat color="white">
-                  <v-btn outlined class="mr-4" @click="setToday">Today</v-btn>
-                  <v-btn fab text small @click="prev">
-                    <v-icon small>mdi-chevron-left</v-icon>
-                  </v-btn>
-                  <v-btn fab text small @click="next">
-                    <v-icon small>mdi-chevron-right</v-icon>
-                  </v-btn>
-                  <v-toolbar-title>{{ title }}</v-toolbar-title>
-                  <v-spacer></v-spacer>
-                  <v-menu bottom right>
-                    <template v-slot:activator="{ on }">
-                      <v-btn outlined v-on="on">
-                        <span>{{ typeToLabel[type] }}</span>
-                        <v-icon right>mdi-menu-down</v-icon>
-                      </v-btn>
-                    </template>
-                    <v-list>
-                      <v-list-item @click="type = 'day'">
-                        <v-list-item-title>Day</v-list-item-title>
-                      </v-list-item>
-                      <v-list-item @click="type = 'week'">
-                        <v-list-item-title>Week</v-list-item-title>
-                      </v-list-item>
-                      <v-list-item @click="type = 'month'">
-                        <v-list-item-title>Month</v-list-item-title>
-                      </v-list-item>
-                      <v-list-item @click="type = '4day'">
-                        <v-list-item-title>4 days</v-list-item-title>
-                      </v-list-item>
-                    </v-list>
-                  </v-menu>
-
-                  <v-tooltip bottom>
-                    <template v-slot:activator="{ on }">
-                      <v-btn
-                        fab
-                        @click="scheduleDialog = true"
-                        class="mx-5 mb-2 white--text"
-                        color="secondary"
-                        v-on="on"
-                      >
-                        <v-icon>mdi-account-clock</v-icon>
-                      </v-btn>
-                    </template>
-                    <span>Add new dates</span>
-                  </v-tooltip>
-                </v-toolbar>
-              </v-sheet>
-              <v-sheet height="600">
-                <v-calendar
-                  ref="calendar"
-                  v-model="focus"
-                  color="primary"
-                  :events="events"
-                  :event-color="getEventColor"
-                  :event-margin-bottom="3"
-                  :now="today"
-                  :type="type"
-                  @mouseenter:event="hoveredEvent"
-                  @mouseleave:event="hoveredEventLeave"
-                  @click:event="deleteEvent"
-                  @click:more="viewDay"
-                  @click:date="viewDay"
-                  @change="updateRange"
-                ></v-calendar>
-              </v-sheet>
-            </v-col>
-          </v-row>
-        </v-card-text>
-
-        <v-divider></v-divider>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-
-          <v-btn color="red darken-3" dark @click="viewScheduleDialog = false; " class="px-5">Close</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <v-dialog v-model="confirmChangeCourseDialog" width="fit-content">
-      <v-card>
-        <v-card-title class="headline primary white--text pa-2" primary-title>Delete Schedule?</v-card-title>
-        <v-card-actions class="py-5 mx-2">
-          <v-btn color="success">Yes</v-btn>
-          <v-btn color="red" dark @click="cancelStudentMove">No</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
   </div>
 </template>
 
 <script>
 import moment from "moment";
 
-var today = new Date(Date.now()).toISOString().slice(-24, -14);
-
 export default {
   data() {
     return {
       trainerDialog: false,
-      trainerDialogTitle: "Add new trainer",
+      trainerDialogTitle: "Add new customer",
       formValid: false,
       addTrainerLoader: false,
       trainersLoader: false,
@@ -857,9 +695,6 @@ export default {
       snackbarColor: "",
 
       cities: [],
-
-      trainingCenters: [],
-      trainingCenter: null,
 
       blockUserDialog: false,
       blockID: null,
@@ -876,7 +711,7 @@ export default {
       cancelledCoursesLoader: false,
       endedCoursesLoader: false,
 
-      trainerID: null,
+      customerID: null,
 
       emailRules: [
         v => !!v || "E-mail is required",
@@ -982,10 +817,10 @@ export default {
         { text: "Date Of Birth", value: "dateOfBirth" },
         { text: "Email", value: "email" },
         { text: "Numéro de téléphone", value: "phoneNumber" },
-        { text: "Adresse", value: "address", width: "15%" },
+        { text: "Adresse", value: "address" },
         { text: "Email Verified", value: "emailVerified" },
         { text: "Account Blocked", value: "accountNonLocked" },
-        { text: "Actions", value: "action", sortable: false, width: "11%" }
+        { text: "Actions", value: "action", sortable: false }
       ],
 
       coursesHeaders: [
@@ -1002,37 +837,9 @@ export default {
         //   align: "center"
         // },
         { text: "Psychologist", value: "psychologist.firstname" },
-        { text: "BAFM", value: "bafm.firstname" }
+        { text: "BAFM", value: "bafm.firstname" },
         // { text: "Actions", value: "action", sortable: false }
-      ],
-
-      today: today,
-      focus: today,
-      type: "month",
-      typeToLabel: {
-        month: "Month",
-        week: "Week",
-        day: "Day",
-        "4day": "4 Days"
-      },
-      calendarLoader: false,
-      start: null,
-      end: null,
-      selectedEvent: {},
-      selectedElement: null,
-      selectedOpen: false,
-      eventColor: "event",
-
-      events: [],
-
-      scheduleDialog: false,
-      formValidSchedule: false,
-      addScheduleLoader: false,
-      selectedText: "",
-      schedulePicker: [],
-
-      viewScheduleDialog: false,
-      confirmChangeCourseDialog: false
+      ]
     };
   },
   created() {
@@ -1047,7 +854,7 @@ export default {
       });
 
     this.$http
-      .get("/admin/" + this.user.id + "/findAll/2", {
+      .get("/admin/" + this.user.id + "/findAll/1", {
         headers: { Authorization: "Bearer " + this.$store.state.token }
       })
       .then(res => {
@@ -1057,17 +864,6 @@ export default {
       .catch(e => {
         console.log(e.response);
         this.trainersLoader = false;
-      });
-
-    this.$http
-      .get("/admin/" + this.user.id + "/findAll/3", {
-        headers: { Authorization: "Bearer " + this.$store.state.token }
-      })
-      .then(res => {
-        this.trainingCenters = res.data;
-      })
-      .catch(e => {
-        console.log(e.response);
       });
   },
   methods: {
@@ -1106,34 +902,24 @@ export default {
         },
         dateOfBirth: this.year + "-" + this.month + "-" + this.day,
         phoneNumber: this.phonenumber,
-        email: this.email,
-        certificateNumber: this.certificateNumber
+        email: this.email
       };
 
       // TODO -- Get training center to associate trainer to
 
       this.$http
-        .post(
-          "/admin/" +
-            this.user.id +
-            "/register-trainer/subtype/" +
-            this.typeOfTrainer +
-            "/training-center/" +
-            this.trainingCenter.id,
-          data,
-          {
-            headers: { Authorization: "Bearer " + this.$store.state.token }
-          }
-        )
+        .post("/admin/" + this.user.id + "/register-customer", data, {
+          headers: { Authorization: "Bearer " + this.$store.state.token }
+        })
         .then(res => {
           //console.log(res);
-          this.snackbarContent = "New trainer added";
+          this.snackbarContent = "New customer added";
           this.snackbarColor = "success";
           this.snackbar = true;
           this.reset();
 
           this.$http
-            .get("/admin/" + this.user.id + "/findAll/2", {
+            .get("/admin/" + this.user.id + "/findAll/1", {
               headers: { Authorization: "Bearer " + this.$store.state.token }
             })
             .then(res => {
@@ -1220,7 +1006,7 @@ export default {
             }
           }
           this.$http
-            .get("/admin/" + this.user.id + "/findAll/2", {
+            .get("/admin/" + this.user.id + "/findAll/1", {
               headers: { Authorization: "Bearer " + this.$store.state.token }
             })
             .then(res => {
@@ -1237,12 +1023,11 @@ export default {
           console.log(e.response);
         });
     },
-
     getAllCourses() {
       // -------------------------- Get all courses ------------------------------
       this.ongoingCoursesLoader = true;
       this.$http
-        .get("admin/trainer/" + this.trainerID + "/findAll/internship/1", {
+        .get("/admin/customer/" + this.customerID + "/internship/1", {
           headers: { Authorization: "Bearer " + this.$store.state.token }
         })
         .then(res => {
@@ -1262,7 +1047,7 @@ export default {
       // -------------------------- Get cancelled courses ------------------------------
       this.cancelledCoursesLoader = true;
       this.$http
-        .get("admin/trainer/" + this.trainerID + "/findAll/internship/0", {
+        .get("/admin/customer/" + this.customerID + "/internship/0", {
           headers: { Authorization: "Bearer " + this.$store.state.token }
         })
         .then(res => {
@@ -1282,13 +1067,13 @@ export default {
       // -------------------------- Get Completed courses ------------------------------
       this.completedCoursesLoader = true;
       this.$http
-        .get("admin/trainer/" + this.trainerID + "/findAll/internship/2", {
+        .get("/admin/customer/" + this.customerID + "/internship/2", {
           headers: { Authorization: "Bearer " + this.$store.state.token }
         })
         .then(res => {
           //console.log("All completed courses");
 
-          this.completedCourses = res.data.content;
+          this.completedCourses = res.data;
           this.completedCoursesLoader = false;
         })
         .catch(e => {
@@ -1302,13 +1087,13 @@ export default {
       // -------------------------- Get Ended courses ------------------------------
       this.completedCoursesLoader = true;
       this.$http
-        .get("admin/trainer/" + this.trainerID + "/findAll/internship/2", {
+        .get("/admin/customer/" + this.customerID + "/internship/2", {
           headers: { Authorization: "Bearer " + this.$store.state.token }
         })
         .then(res => {
           //console.log(res.data);
           //console.log('All ended courses');
-          this.endedCourses = res.data.content;
+          this.endedCourses = res.data;
           this.ToCompleteCoursesLoader = false;
         })
         .catch(e => {
@@ -1319,7 +1104,7 @@ export default {
       // ------------------------------------------------------------------------
     },
     openCoursesDialog(item) {
-      this.trainerID = item;
+      this.customerID = item;
 
       this.getAllCourses();
       this.getEndedCourses();
@@ -1327,163 +1112,7 @@ export default {
       this.getCompletedCourses();
 
       this.coursesDialog = true;
-    },
-    viewDay({ date }) {
-      this.focus = date;
-      this.type = "day";
-    },
-    getEventColor(event) {
-      return event.color;
-    },
-    setToday() {
-      this.focus = this.today;
-    },
-    prev() {
-      this.$refs.calendar.prev();
-    },
-    next() {
-      this.$refs.calendar.next();
-    },
-    deleteEvent({ nativeEvent, event }) {
-      let data = [];
-      data.push({ id: event.id, scheduleDate: event.start });
-
-      console.log(data);
-      this.$http
-        .put("/trainer/" + this.user.id + "/schedule/delete", data, {
-          headers: { Authorization: "Bearer " + this.$store.state.token }
-        })
-        .then(res => {
-          this.events = [];
-
-          this.getEvents();
-
-          this.snackbarContent = "Horaire supprimé";
-          this.snackbarColor = "warning";
-          this.snackbar = true;
-        })
-        .catch(function(e) {
-          console.log(e.response);
-        });
-
-      nativeEvent.stopPropagation();
-    },
-    updateRange({ start, end }) {
-      // You could load events from an outside source (like database) now that we have the start and end dates on the calendar
-      this.start = start;
-      this.end = end;
-    },
-    addSchedule() {
-      this.addScheduleLoader = true;
-      let data = [];
-      data = this.getDates(this.schedulePicker[0], this.schedulePicker[1]);
-
-      this.$http
-        .post("/admin/trainer/" + this.trainerID + "/schedule/save", data, {
-          headers: { Authorization: "Bearer " + this.$store.state.token }
-        })
-        .then(res => {
-          this.scheduleDialog = false;
-          this.formValidSchedule = false;
-
-          this.addScheduleLoader = false;
-          this.events = [];
-          this.getEvents();
-
-          this.schedulePicker = [];
-          this.snackbarContent = "Horaire ajouté";
-          this.snackbarColor = "success";
-          this.snackbar = true;
-        })
-        .catch(function(e) {
-          console.log(e);
-        });
-    },
-    resetSchedule() {
-      this.scheduleDialog = false;
-      this.formValidSchedule = false;
-
-      this.addScheduleLoader = false;
-    },
-    allowedDates(val) {
-      if (this.events) {
-        for (let i = 0; i < this.events.length; i++) {
-          if (val == this.events[i].start) {
-            return null;
-          }
-        }
-      }
-
-      return val;
-    },
-    dateSelected(val) {
-      if (val[1]) {
-        let startDate = new Date(val[0]);
-
-        let endDate = new Date(val[1]);
-        const diffTime = Math.abs(endDate - startDate);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-        this.selectedText = diffDays + 1 + " jours sélectionnés";
-
-        this.formValidSchedule = true;
-      }
-    },
-    getDates(startDate, endDate) {
-      var dateArray = [];
-      var currentDate = moment(startDate);
-      var stopDate = moment(endDate);
-      while (currentDate <= stopDate) {
-        dateArray.push({
-          scheduleDate: moment(currentDate).format("YYYY-MM-DD")
-        });
-        currentDate = moment(currentDate).add(1, "days");
-      }
-      return dateArray;
-    },
-    hoveredEvent(e) {
-      e.event.color = "eventHover";
-    },
-    hoveredEventLeave(e) {
-      e.event.color = "event";
-    },
-
-    getEvents() {
-      this.calendarLoader = true;
-      this.$http
-        .get("/admin/trainer/" + this.trainerID + "/schedule/findAll", {
-          headers: { Authorization: "Bearer " + this.$store.state.token }
-        })
-        .then(res => {
-          let events = res.data;
-
-          events.forEach((event, i) => {
-            this.events.push({
-              id: event.id,
-              name: "",
-              start: event.scheduleDate,
-              end: event.scheduleDate,
-              color: "event"
-            });
-          });
-
-          this.calendarLoader = false;
-        })
-        .catch(e => {
-          console.log(e.response);
-          this.calendarLoader = false;
-        });
-    },
-
-    openViewScheduleDialog(id) {
-      this.formValidSchedule = false;
-      this.events = [];
-      this.trainerID = id;
-      this.getEvents();
-      this.viewScheduleDialog = true;
-    },
-
-    cancelStudentMove() {},
+    }
   },
   computed: {
     years: function() {
@@ -1501,24 +1130,6 @@ export default {
     },
     user() {
       return this.$store.getters.getUser;
-    },
-    title() {
-      const { start, end } = this;
-      if (!start || !end) {
-        return "";
-      }
-
-      const startMonth = this.monthFormatter(start);
-
-      const startYear = start.year;
-
-      return `${startMonth} ${startYear}`;
-    },
-    monthFormatter() {
-      return this.$refs.calendar.getFormatter({
-        timeZone: "UTC",
-        month: "long"
-      });
     }
   }
 };
