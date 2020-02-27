@@ -46,7 +46,16 @@
           <template v-slot:item.address="{ item }">
             {{ item.address.address }}, {{item.address.city.cityName.charAt(0).toUpperCase() + item.address.city.cityName.substring(1)}}
             <br />
-            <span style=" font-style: italic;">{{item.address.city.pinCode}}</span>
+            <span style=" font-style: italic;">{{item.address.pinCode}}</span>
+          </template>
+
+          <template v-slot:item.emailVerified="{ item }">
+            <v-chip dark v-if="item.emailVerified" color="green">
+              <v-icon>mdi-email-check-outline</v-icon>
+            </v-chip>
+            <v-chip dark v-else color="red">
+              <v-icon>mdi-email-alert-outline</v-icon>
+            </v-chip>
           </template>
 
           <template v-slot:item.gender="{ item }">
@@ -1053,6 +1062,8 @@ export default {
       .then(res => {
         this.trainers = res.data;
         this.trainersLoader = false;
+
+        console.log(this.trainers);
       })
       .catch(e => {
         console.log(e.response);
@@ -1127,7 +1138,8 @@ export default {
         )
         .then(res => {
           //console.log(res);
-          this.snackbarContent = "New trainer added";
+          this.snackbarContent =
+            "New trainer added. Email needs to be confirmed before they can be added to a course.";
           this.snackbarColor = "success";
           this.snackbar = true;
           this.reset();

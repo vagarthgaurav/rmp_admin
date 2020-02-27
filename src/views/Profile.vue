@@ -42,6 +42,9 @@
                 <v-flex xs3 class="my-2">
                   <span class="profileTitle">Phone Number</span>
                 </v-flex>
+                <v-flex xs3 class="my-2">
+                  <span class="profileTitle">Siren Number</span>
+                </v-flex>
                 <v-divider></v-divider>
                 <v-flex xs3 class="my-4">
                   <span class="profileTitle">Password</span>
@@ -62,6 +65,9 @@
                 </v-flex>
                 <v-flex xs3 class="my-2 mx-5">
                   <span class="profileData">{{user.phoneNumber}}</span>
+                </v-flex>
+                <v-flex xs3 class="my-2 mx-5">
+                  <span class="profileData">{{user.sirenNumber}}</span>
                 </v-flex>
                 <v-divider></v-divider>
                 <v-flex xs3 class="my-2 mx-5">

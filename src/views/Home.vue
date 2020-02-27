@@ -224,6 +224,21 @@
                               <v-icon right class="mr-2" v-on="on">mdi-account-box-multiple-outline</v-icon>
                             </v-btn>
                           </template>
+                          <span>Confirm completion</span>
+                        </v-tooltip>
+
+                        <v-tooltip bottom>
+                          <template v-slot:activator="{ on }">
+                            <v-btn
+                              class="mx-2"
+                              text
+                              fab
+                              small
+                              @click="openParticipantDialog(item.id, 'ended')"
+                            >
+                              <v-icon right class="mr-2" v-on="on">mdi-account-box-multiple-outline</v-icon>
+                            </v-btn>
+                          </template>
                           <span>View Participants</span>
                         </v-tooltip>
                       </template>
@@ -532,28 +547,62 @@
             <v-layout row wrap>
               <!--Trainer BAFM-->
               <v-flex xs12 sm6 md4 class="px-3">
-                <v-select
-                  v-model="trainerBafm"
-                  :items="trainersListBafm"
-                  item-text="firstname"
-                  item-value="id"
-                  label="Select BAFM"
-                  prepend-icon="mdi-folder-account"
-                  :rules="[v => !!v || 'Select a BAFM']"
-                ></v-select>
+                <v-row class="ma-0 pt-0">
+                  <v-col cols="12" sm="10" class="ma-0 pt-0">
+                    <v-select
+                      v-model="trainerBafm"
+                      :items="trainersListBafm"
+                      item-text="firstname"
+                      item-value="id"
+                      label="Select BAFM"
+                      prepend-icon="mdi-folder-account"
+                      :rules="[v => !!v || 'Select a BAFM']"
+                      @change="bafmChanged"
+                    ></v-select>
+                  </v-col>
+                  <v-col cols="12" sm="2" class="ma-0 pt-0">
+                    <v-btn
+                      small
+                      fab
+                      color="green lighten-2"
+                      class="mt-2"
+                      @click="bafmViewSchedule"
+                      :disabled="!bafmScheduleButtonDisabled"
+                    >
+                      <v-icon color="white">mdi-account-clock-outline</v-icon>
+                    </v-btn>
+                  </v-col>
+                </v-row>
               </v-flex>
 
               <!--Trainer Psychologue-->
               <v-flex xs12 sm6 md4 class="px-3">
-                <v-select
-                  v-model="trainerPsycho"
-                  :items="trainersListPsycho"
-                  item-text="firstname"
-                  item-value="id"
-                  label="Select Psychologue"
-                  prepend-icon="mdi-folder-account-outline"
-                  :rules="[v => !!v || 'Select a Psychology']"
-                ></v-select>
+                <v-row class="ma-0 pt-0">
+                  <v-col cols="12" sm="10" class="ma-0 pt-0">
+                    <v-select
+                      v-model="trainerPsycho"
+                      :items="trainersListPsycho"
+                      item-text="firstname"
+                      item-value="id"
+                      label="Select Psychologue"
+                      prepend-icon="mdi-folder-account-outline"
+                      :rules="[v => !!v || 'Select a Psychology']"
+                      @change="psychoChanged"
+                    ></v-select>
+                  </v-col>
+                  <v-col cols="12" sm="2" class="ma-0 pt-0">
+                    <v-btn
+                      small
+                      fab
+                      color="green lighten-2"
+                      class="mt-2"
+                      @click="psychoViewSchedule"
+                      :disabled="!psychoScheduleButtonDisabled"
+                    >
+                      <v-icon color="white">mdi-account-clock-outline</v-icon>
+                    </v-btn>
+                  </v-col>
+                </v-row>
               </v-flex>
 
               <!--Locations-->
@@ -696,7 +745,7 @@
                 <template v-slot:item.action="{ item }" v-if="participantsDialogShowActions">
                   <v-menu bottom left offset-y>
                     <template v-slot:activator="{ on }">
-                      <v-btn icon v-on="on">
+                      <v-btn fab small dark v-on="on" color="yellow darken-4" class="mr-2">
                         <v-icon>mdi-account-arrow-right-outline</v-icon>
                       </v-btn>
                     </template>
@@ -708,6 +757,7 @@
                         @click="newCourseSelected(course.id, item.id)"
                       >
                         <v-list-item-title>
+                          {{ course.uniqueIdentifier }} -
                           <span
                             style="text-transform: capitalize"
                           >{{course.uniqueIdentifier}} / {{ course.trainingCenterLocation.city.cityName }}</span>
@@ -716,6 +766,33 @@
                       </v-list-item>
                     </v-list>
                   </v-menu>
+
+                  <v-btn
+                    dark
+                    fab
+                    color="blue ligthen-1"
+                    class="mx-2"
+                    small
+                    @click="openCertificateDialog(item)"
+                  >
+                    <v-icon right class="mr-2">mdi-account-box-multiple-outline</v-icon>
+                  </v-btn>
+
+                  <!-- <v-tooltip bottom>
+                    <template v-slot:activator="{ on }">
+                      <v-btn
+                        dark
+                        fab
+                        color="blue ligthen-1"
+                        class="mx-2"
+                        small
+                        @click="getRegistrationDetails(item.id)"
+                      >
+                        <v-icon right class="mr-2" v-on="on">mdi-account-box-multiple-outline</v-icon>
+                      </v-btn>
+                    </template>
+                    <span>View Details</span>
+                  </v-tooltip>-->
                 </template>
               </v-data-table>
             </v-col>
@@ -1301,8 +1378,10 @@ export default {
     editItem(item) {},
     deleteItem(item) {},
     rowSelect(item) {},
-    openParticipantDialog(id, type) {
-      this.oldClass = id;
+    openParticipantDialog(item, type) {
+      this.selectedClass = item;
+      this.oldClass = item.id;
+
       if (type == "ongoing") {
         this.participantsDialogShowActions = true;
       }
@@ -1314,7 +1393,7 @@ export default {
           "/admin/" +
             this.user.id +
             "/findAll-customer/internship/" +
-            id +
+            item.id +
             "/status/1",
           {
             headers: { Authorization: "Bearer " + this.$store.state.token }
@@ -1716,3 +1795,4 @@ export default {
   }
 };
 </script>
+
